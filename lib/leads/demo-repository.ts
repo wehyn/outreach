@@ -4,6 +4,7 @@ import { getDatabase, withTransaction } from "../db";
 import { ACTIVE_PIPELINE_STAGES } from "./pipeline";
 import type { ActivePipelineStage, LeadStage } from "./pipeline";
 import type { ManualActivityType } from "./activity";
+import type { CreateLeadInput } from "../validation/lead";
 
 export { ACTIVE_PIPELINE_STAGES, PIPELINE_STAGES } from "./pipeline";
 export type { ActivePipelineStage, LeadStage } from "./pipeline";
@@ -543,6 +544,97 @@ export function getLeadById(id: string, workspaceId: string): Lead | null {
     .get(id, workspaceId) as LeadRow | undefined;
 
   return row ? leadFromRow(row) : null;
+}
+
+function initialsForName(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+
+  if (parts.length > 1) {
+    return `${parts[0][0]}${parts.at(-1)?.[0]}`.toUpperCase();
+  }
+
+  return name.trim().slice(0, 2).toUpperCase();
+}
+
+export function createLead(workspaceId: string, input: CreateLeadInput): Lead | null {
+  ensureDemoLeads();
+  const database = getDatabase();
+  const workspace = database.prepare("SELECT id FROM workspaces WHERE id = ?").get(workspaceId);
+
+  if (!workspace) {
+    return null;
+  }
+
+  const companyName = input.company.name.trim();
+  const companyDomain = input.company.domain.trim().toLowerCase();
+  const companyLocation = input.company.location.trim();
+  const contactName = input.contact.name.trim();
+  const contactTitle = input.contact.title.trim();
+  const contactEmail = input.contact.email.trim();
+  const leadName = contactName;
+  const leadInitials = initialsForName(leadName);
+  const existingCompany = database
+    .prepare(
+      `SELECT id
+       FROM companies
+       WHERE workspace_id = ? AND lower(domain) = ?
+       ORDER BY id ASC
+       LIMIT 1`,
+    )
+    .get(workspaceId, companyDomain) as { id: string } | undefined;
+  const companyId = existingCompany?.id ?? `company-${randomUUID()}`;
+  const contactId = `contact-${randomUUID()}`;
+  const leadId = `lead-${randomUUID()}`;
+
+  withTransaction((transactionDatabase) => {
+    if (!existingCompany) {
+      transactionDatabase
+        .prepare(
+          "INSERT INTO companies (id, workspace_id, name, domain, location) VALUES (?, ?, ?, ?, ?)",
+        )
+        .run(companyId, workspaceId, companyName, companyDomain, companyLocation);
+    }
+
+    transactionDatabase
+      .prepare(
+        "INSERT INTO contacts (id, workspace_id, company_id, name, title, email, initials) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      )
+      .run(contactId, workspaceId, companyId, contactName, contactTitle, contactEmail, initialsForName(contactName));
+
+    transactionDatabase
+      .prepare(
+        `INSERT INTO leads (
+          id, workspace_id, company_id, primary_contact_id, name, initials, stage, status, priority,
+          service_interest, observed_pain_point, recommended_offer, personalization_hook, research_notes,
+          estimated_value, source, next_action, next_action_date, last_contacted_at, fit_score, engagement_score
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        leadId,
+        workspaceId,
+        companyId,
+        contactId,
+        leadName,
+        leadInitials,
+        input.lead.stage,
+        statusForStage(input.lead.stage, "active"),
+        input.lead.priority,
+        input.lead.serviceInterest.trim(),
+        input.lead.observedPainPoint.trim(),
+        input.lead.recommendedOffer.trim(),
+        input.lead.personalizationHook.trim(),
+        input.lead.researchNotes.trim(),
+        input.lead.estimatedValue.trim(),
+        input.lead.source.trim(),
+        input.lead.nextAction.trim(),
+        input.lead.nextActionDate,
+        null,
+        0,
+        0,
+      );
+  });
+
+  return getLeadById(leadId, workspaceId);
 }
 
 function statusForStage(stage: LeadStage, currentStatus: Lead["status"]): Lead["status"] {

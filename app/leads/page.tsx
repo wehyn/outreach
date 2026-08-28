@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LeadPipeline } from "@/components/leads/lead-pipeline";
+import { CreateLeadForm } from "@/components/leads/create-lead-form";
 import { WorkspaceShell } from "@/components/layout/workspace-shell";
 import { requireWorkspace } from "@/lib/auth";
 import { ACTIVE_PIPELINE_STAGES, groupLeadsByStage, listLeads } from "@/lib/leads/demo-repository";
@@ -48,6 +49,19 @@ export default async function LeadsPage() {
           </div>
           <p>Open a lead to keep its context, reason, and next action together.</p>
         </section>
+
+        <details className="create-lead-disclosure">
+          <summary>
+            <span>
+              <span className="eyebrow">New relationship</span>
+              <strong>Add a lead</strong>
+            </span>
+            <span className="create-lead-disclosure-hint">Company · contact · context</span>
+          </summary>
+          <div className="create-lead-panel">
+            <CreateLeadForm />
+          </div>
+        </details>
 
         <section className="content-section" aria-labelledby="pipeline-heading">
           <div className="section-heading">
