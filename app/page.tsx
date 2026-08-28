@@ -41,7 +41,7 @@ export default async function Home() {
           <section className="page-heading" id="overview">
             <div>
               <p className="eyebrow">Overview · SQLite dev workspace</p>
-              <h1>Good morning, Wayne.</h1>
+              <h1>Good morning, {workspace.userName}.</h1>
               <p>Keep your next conversation visible, useful, and easy to act on.</p>
             </div>
             <Link className="button button-primary" href="/leads">
