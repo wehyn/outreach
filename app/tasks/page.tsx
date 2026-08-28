@@ -3,7 +3,8 @@ import Link from "next/link";
 
 import { WorkspaceShell } from "@/components/layout/workspace-shell";
 import { TaskList } from "@/components/tasks/task-list";
-import { DEMO_WORKSPACE_ID, listTasks } from "@/lib/tasks/demo-repository";
+import { requireWorkspace } from "@/lib/auth";
+import { listTasks } from "@/lib/tasks/demo-repository";
 
 export const metadata: Metadata = {
   title: "Tasks — Outreach",
@@ -12,14 +13,15 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default function TasksPage() {
-  const tasks = listTasks(DEMO_WORKSPACE_ID);
+export default async function TasksPage() {
+  const workspace = await requireWorkspace();
+  const tasks = listTasks(workspace.workspaceId);
   const openTasks = tasks.filter((task) => task.status === "open");
   const completedTasks = tasks.length - openTasks.length;
   const leadCount = new Set(tasks.map((task) => task.leadId)).size;
 
   return (
-    <WorkspaceShell breadcrumb="Tasks" currentRoute="tasks">
+    <WorkspaceShell breadcrumb="Tasks" currentRoute="tasks" workspace={workspace}>
       <div className="page-wrap">
         <section className="page-heading leads-page-heading">
           <div>

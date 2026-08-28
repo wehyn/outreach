@@ -1784,6 +1784,100 @@ input:focus-visible {
   min-height: 38px;
 }
 
+.logout-button {
+  min-height: 36px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-faint);
+  cursor: pointer;
+  padding: 6px 0;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+}
+
+.logout-button:hover {
+  color: var(--ink);
+}
+
+.logout-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.auth-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  background: var(--canvas);
+  padding: 24px;
+}
+
+.auth-card {
+  width: min(100%, 420px);
+  padding: 30px;
+}
+
+.auth-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 38px;
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+}
+
+.auth-card .eyebrow {
+  margin: 0 0 11px;
+}
+
+.auth-card h1 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 1.05;
+}
+
+.auth-intro {
+  margin: 12px 0 0;
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.auth-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 26px;
+}
+
+.auth-form input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+  color: var(--ink);
+  padding: 0 10px;
+}
+
+.auth-form input:hover {
+  border-color: #555248;
+}
+
+.auth-form input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 4px;
+}
+
 @media (max-width: 1180px) {
   .sidebar {
     width: 76px;

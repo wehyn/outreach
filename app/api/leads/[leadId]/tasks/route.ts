@@ -1,4 +1,5 @@
-import { createTask, DEMO_WORKSPACE_ID } from "@/lib/tasks/demo-repository";
+import { getWorkspaceContext } from "@/lib/auth";
+import { createTask } from "@/lib/tasks/demo-repository";
 import { createTaskSchema } from "@/lib/validation/task";
 import { getLeadById } from "@/lib/leads/demo-repository";
 
@@ -6,8 +7,14 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ leadId: string }> },
 ) {
+  const workspace = await getWorkspaceContext(request);
+
+  if (!workspace) {
+    return Response.json({ error: "Authentication required." }, { status: 401 });
+  }
+
   const { leadId } = await params;
-  const lead = getLeadById(leadId, DEMO_WORKSPACE_ID);
+  const lead = getLeadById(leadId, workspace.workspaceId);
 
   if (!lead) {
     return Response.json({ error: "Lead not found." }, { status: 404 });
@@ -33,7 +40,7 @@ export async function POST(
     );
   }
 
-  const task = createTask(leadId, DEMO_WORKSPACE_ID, parsed.data);
+  const task = createTask(leadId, workspace.workspaceId, parsed.data);
 
   if (!task) {
     return Response.json({ error: "Lead not found." }, { status: 404 });

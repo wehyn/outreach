@@ -1,12 +1,19 @@
-import { DEMO_WORKSPACE_ID, getLeadById, updateLead } from "@/lib/leads/demo-repository";
+import { getWorkspaceContext } from "@/lib/auth";
+import { getLeadById, updateLead } from "@/lib/leads/demo-repository";
 import { updateLeadSchema } from "@/lib/validation/lead";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ leadId: string }> },
 ) {
+  const workspace = await getWorkspaceContext(request);
+
+  if (!workspace) {
+    return Response.json({ error: "Authentication required." }, { status: 401 });
+  }
+
   const { leadId } = await params;
-  const existingLead = getLeadById(leadId, DEMO_WORKSPACE_ID);
+  const existingLead = getLeadById(leadId, workspace.workspaceId);
 
   if (!existingLead) {
     return Response.json({ error: "Lead not found in this workspace." }, { status: 404 });
@@ -32,7 +39,7 @@ export async function PATCH(
     );
   }
 
-  const lead = updateLead(leadId, DEMO_WORKSPACE_ID, parsed.data);
+  const lead = updateLead(leadId, workspace.workspaceId, parsed.data);
 
   if (!lead) {
     return Response.json({ error: "Lead not found in this workspace." }, { status: 404 });
