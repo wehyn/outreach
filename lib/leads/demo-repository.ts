@@ -1,3 +1,6 @@
+import { randomUUID } from "node:crypto";
+
+import { getDatabase, withTransaction } from "../db";
 import { ACTIVE_PIPELINE_STAGES } from "./pipeline";
 import type { ActivePipelineStage, LeadStage } from "./pipeline";
 import type { ManualActivityType } from "./activity";
@@ -324,36 +327,222 @@ const DEMO_LEADS: Lead[] = [
   },
 ];
 
-function cloneLead(lead: Lead): Lead {
-  return {
-    ...lead,
-    company: { ...lead.company },
-    contact: { ...lead.contact },
-    activity: lead.activity.map((activity) => ({ ...activity })),
-  };
-}
-
 export type LeadUpdate = {
   stage?: LeadStage;
   nextAction?: string;
   nextActionDate?: string;
 };
 
-type DemoGlobalState = typeof globalThis & {
-  __outreachDemoLeads?: Lead[];
+type LeadRow = {
+  company_domain: string;
+  company_id: string;
+  company_location: string;
+  company_name: string;
+  contact_email: string;
+  contact_id: string;
+  contact_initials: string;
+  contact_name: string;
+  contact_title: string;
+  engagement_score: number;
+  estimated_value: string;
+  fit_score: number;
+  id: string;
+  initials: string;
+  last_contacted_at: string | null;
+  name: string;
+  next_action: string;
+  next_action_date: string;
+  personalization_hook: string;
+  priority: LeadPriority;
+  research_notes: string;
+  recommended_offer: string;
+  service_interest: string;
+  source: string;
+  stage: LeadStage;
+  status: Lead["status"];
+  observed_pain_point: string;
+  workspace_id: string;
 };
 
-const demoGlobalState = globalThis as DemoGlobalState;
-const demoLeads = demoGlobalState.__outreachDemoLeads ?? (demoGlobalState.__outreachDemoLeads = DEMO_LEADS.map(cloneLead));
+type ActivityRow = {
+  actor: string;
+  body: string;
+  id: string;
+  occurred_at: string;
+  type: LeadActivityType;
+};
+
+function seedDemoLeads() {
+  const database = getDatabase();
+  const insertWorkspace = database.prepare("INSERT OR IGNORE INTO workspaces (id, name) VALUES (?, ?)");
+  const insertCompany = database.prepare(
+    "INSERT OR IGNORE INTO companies (id, workspace_id, name, domain, location) VALUES (?, ?, ?, ?, ?)",
+  );
+  const insertContact = database.prepare(
+    "INSERT OR IGNORE INTO contacts (id, workspace_id, company_id, name, title, email, initials) VALUES (?, ?, ?, ?, ?, ?, ?)",
+  );
+  const insertLead = database.prepare(
+    `INSERT OR IGNORE INTO leads (
+      id, workspace_id, company_id, primary_contact_id, name, initials, stage, status, priority,
+      service_interest, observed_pain_point, recommended_offer, personalization_hook, research_notes,
+      estimated_value, source, next_action, next_action_date, last_contacted_at, fit_score, engagement_score
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  );
+  const insertActivity = database.prepare(
+    "INSERT OR IGNORE INTO activities (id, workspace_id, lead_id, type, body, occurred_at, actor) VALUES (?, ?, ?, ?, ?, ?, ?)",
+  );
+
+  insertWorkspace.run(DEMO_WORKSPACE_ID, "Wayne's workspace");
+
+  for (const lead of DEMO_LEADS) {
+    insertCompany.run(
+      lead.company.id,
+      lead.workspaceId,
+      lead.company.name,
+      lead.company.domain,
+      lead.company.location,
+    );
+    insertContact.run(
+      lead.contact.id,
+      lead.workspaceId,
+      lead.company.id,
+      lead.contact.name,
+      lead.contact.title,
+      lead.contact.email,
+      lead.contact.initials,
+    );
+    insertLead.run(
+      lead.id,
+      lead.workspaceId,
+      lead.company.id,
+      lead.contact.id,
+      lead.name,
+      lead.initials,
+      lead.stage,
+      lead.status,
+      lead.priority,
+      lead.serviceInterest,
+      lead.observedPainPoint,
+      lead.recommendedOffer,
+      lead.personalizationHook,
+      lead.researchNotes,
+      lead.estimatedValue,
+      lead.source,
+      lead.nextAction,
+      lead.nextActionDate,
+      lead.lastContactedAt,
+      lead.fitScore,
+      lead.engagementScore,
+    );
+
+    for (const activity of lead.activity) {
+      insertActivity.run(
+        activity.id,
+        lead.workspaceId,
+        lead.id,
+        activity.type,
+        activity.body,
+        activity.occurredAt,
+        activity.actor,
+      );
+    }
+  }
+}
+
+export function ensureDemoLeads() {
+  seedDemoLeads();
+}
+
+function activitiesForLead(id: string, workspaceId: string) {
+  const database = getDatabase();
+  const rows = database
+    .prepare(
+      `SELECT id, type, body, occurred_at, actor
+       FROM activities
+       WHERE lead_id = ? AND workspace_id = ?
+       ORDER BY occurred_at ASC, id ASC`,
+    )
+    .all(id, workspaceId) as ActivityRow[];
+
+  return rows.map((activity) => ({
+    actor: activity.actor,
+    body: activity.body,
+    id: activity.id,
+    occurredAt: activity.occurred_at,
+    type: activity.type,
+  }));
+}
+
+function leadFromRow(row: LeadRow): Lead {
+  return {
+    activity: activitiesForLead(row.id, row.workspace_id),
+    company: {
+      domain: row.company_domain,
+      id: row.company_id,
+      location: row.company_location,
+      name: row.company_name,
+    },
+    contact: {
+      email: row.contact_email,
+      id: row.contact_id,
+      initials: row.contact_initials,
+      name: row.contact_name,
+      title: row.contact_title,
+    },
+    engagementScore: row.engagement_score,
+    estimatedValue: row.estimated_value,
+    fitScore: row.fit_score,
+    id: row.id,
+    initials: row.initials,
+    lastContactedAt: row.last_contacted_at,
+    name: row.name,
+    nextAction: row.next_action,
+    nextActionDate: row.next_action_date,
+    personalizationHook: row.personalization_hook,
+    priority: row.priority,
+    researchNotes: row.research_notes,
+    recommendedOffer: row.recommended_offer,
+    serviceInterest: row.service_interest,
+    source: row.source,
+    stage: row.stage,
+    status: row.status,
+    observedPainPoint: row.observed_pain_point,
+    workspaceId: row.workspace_id,
+  };
+}
+
+const leadSelect = `
+  SELECT
+    l.id, l.workspace_id, l.name, l.initials, l.stage, l.status, l.priority,
+    l.service_interest, l.observed_pain_point, l.recommended_offer, l.personalization_hook,
+    l.research_notes, l.estimated_value, l.source, l.next_action, l.next_action_date,
+    l.last_contacted_at, l.fit_score, l.engagement_score,
+    c.id AS company_id, c.name AS company_name, c.domain AS company_domain, c.location AS company_location,
+    p.id AS contact_id, p.name AS contact_name, p.title AS contact_title,
+    p.email AS contact_email, p.initials AS contact_initials
+  FROM leads l
+  JOIN companies c ON c.id = l.company_id AND c.workspace_id = l.workspace_id
+  JOIN contacts p ON p.id = l.primary_contact_id AND p.workspace_id = l.workspace_id
+`;
 
 export function listLeads(workspaceId: string): Lead[] {
-  return demoLeads.filter((lead) => lead.workspaceId === workspaceId).map(cloneLead);
+  ensureDemoLeads();
+  const database = getDatabase();
+  const rows = database
+    .prepare(`${leadSelect} WHERE l.workspace_id = ? ORDER BY l.id`)
+    .all(workspaceId) as LeadRow[];
+
+  return rows.map(leadFromRow);
 }
 
 export function getLeadById(id: string, workspaceId: string): Lead | null {
-  const lead = demoLeads.find((candidate) => candidate.id === id && candidate.workspaceId === workspaceId);
+  ensureDemoLeads();
+  const database = getDatabase();
+  const row = database
+    .prepare(`${leadSelect} WHERE l.id = ? AND l.workspace_id = ?`)
+    .get(id, workspaceId) as LeadRow | undefined;
 
-  return lead ? cloneLead(lead) : null;
+  return row ? leadFromRow(row) : null;
 }
 
 function statusForStage(stage: LeadStage, currentStatus: Lead["status"]): Lead["status"] {
@@ -373,36 +562,52 @@ function statusForStage(stage: LeadStage, currentStatus: Lead["status"]): Lead["
 }
 
 export function updateLead(id: string, workspaceId: string, input: LeadUpdate): Lead | null {
-  const index = demoLeads.findIndex((candidate) => candidate.id === id && candidate.workspaceId === workspaceId);
+  const currentLead = getLeadById(id, workspaceId);
 
-  if (index === -1) {
+  if (!currentLead) {
     return null;
   }
 
-  const currentLead = demoLeads[index];
   const nextStage = input.stage ?? currentLead.stage;
   const stageChanged = nextStage !== currentLead.stage;
-  const nextActivity: LeadActivity | null = stageChanged
-    ? {
-        id: `activity-${currentLead.id}-stage-${currentLead.activity.length + 1}`,
-        type: "stage_change",
-        body: `Moved from ${currentLead.stage} to ${nextStage}.`,
-        occurredAt: new Date().toISOString(),
-        actor: "Wayne",
-      }
-    : null;
-  const updatedLead: Lead = {
-    ...currentLead,
-    stage: nextStage,
-    status: statusForStage(nextStage, currentLead.status),
-    nextAction: input.nextAction?.trim() ?? currentLead.nextAction,
-    nextActionDate: input.nextActionDate ?? currentLead.nextActionDate,
-    activity: nextActivity ? [...currentLead.activity, nextActivity] : currentLead.activity,
-  };
+  const occurredAt = new Date().toISOString();
+  const nextAction = input.nextAction === undefined ? currentLead.nextAction : input.nextAction.trim();
+  const nextActionDate = input.nextActionDate ?? currentLead.nextActionDate;
 
-  demoLeads[index] = updatedLead;
+  withTransaction((database) => {
+    database
+      .prepare(
+        `UPDATE leads
+         SET stage = ?, status = ?, next_action = ?, next_action_date = ?
+         WHERE id = ? AND workspace_id = ?`,
+      )
+      .run(
+        nextStage,
+        statusForStage(nextStage, currentLead.status),
+        nextAction,
+        nextActionDate,
+        id,
+        workspaceId,
+      );
 
-  return cloneLead(updatedLead);
+    if (stageChanged) {
+      database
+        .prepare(
+          "INSERT INTO activities (id, workspace_id, lead_id, type, body, occurred_at, actor) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        )
+        .run(
+          `activity-${id}-stage-${randomUUID()}`,
+          workspaceId,
+          id,
+          "stage_change",
+          `Moved from ${currentLead.stage} to ${nextStage}.`,
+          occurredAt,
+          "Wayne",
+        );
+    }
+  });
+
+  return getLeadById(id, workspaceId);
 }
 
 export type LeadActivityInput = {
@@ -412,30 +617,28 @@ export type LeadActivityInput = {
 };
 
 export function addLeadActivity(id: string, workspaceId: string, input: LeadActivityInput): Lead | null {
-  const index = demoLeads.findIndex((candidate) => candidate.id === id && candidate.workspaceId === workspaceId);
+  const currentLead = getLeadById(id, workspaceId);
 
-  if (index === -1) {
+  if (!currentLead) {
     return null;
   }
 
-  const currentLead = demoLeads[index];
   const occurredAt = input.occurredAt ?? new Date().toISOString();
-  const activity: LeadActivity = {
-    id: `activity-${currentLead.id}-${currentLead.activity.length + 1}`,
-    type: input.type,
-    body: input.body.trim(),
-    occurredAt,
-    actor: "Wayne",
-  };
-  const updatedLead: Lead = {
-    ...currentLead,
-    lastContactedAt: input.type === "note" ? currentLead.lastContactedAt : occurredAt,
-    activity: [...currentLead.activity, activity],
-  };
+  const body = input.body.trim();
 
-  demoLeads[index] = updatedLead;
+  withTransaction((database) => {
+    database
+      .prepare("INSERT INTO activities (id, workspace_id, lead_id, type, body, occurred_at, actor) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .run(`activity-${id}-${randomUUID()}`, workspaceId, id, input.type, body, occurredAt, "Wayne");
 
-  return cloneLead(updatedLead);
+    if (input.type !== "note") {
+      database
+        .prepare("UPDATE leads SET last_contacted_at = ? WHERE id = ? AND workspace_id = ?")
+        .run(occurredAt, id, workspaceId);
+    }
+  });
+
+  return getLeadById(id, workspaceId);
 }
 
 export function groupLeadsByStage(leads: readonly Lead[]): PipelineColumn[] {
