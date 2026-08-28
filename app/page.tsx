@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 import { Icon, WorkspaceShell } from "@/components/layout/workspace-shell";
+import { requireWorkspace } from "@/lib/auth";
 import { buildDashboardData } from "@/lib/dashboard/dashboard";
-import { DEMO_WORKSPACE_ID, listLeads } from "@/lib/leads/demo-repository";
+import { listLeads } from "@/lib/leads/demo-repository";
 import { listTasks } from "@/lib/tasks/demo-repository";
 
 export const dynamic = "force-dynamic";
@@ -23,8 +24,9 @@ function formatPipelineValue(value: number) {
   return `$${value}`;
 }
 
-export default function Home() {
-  const dashboard = buildDashboardData(listLeads(DEMO_WORKSPACE_ID), listTasks(DEMO_WORKSPACE_ID));
+export default async function Home() {
+  const workspace = await requireWorkspace();
+  const dashboard = buildDashboardData(listLeads(workspace.workspaceId), listTasks(workspace.workspaceId));
   const summaryCards = [
     { label: "Active leads", value: String(dashboard.activeLeadCount), detail: "Across the active pipeline", tone: "positive" },
     { label: "Open follow-ups", value: formatCount(dashboard.openTaskCount), detail: `${dashboard.overdueTaskCount} overdue`, tone: "warning" },
@@ -34,12 +36,12 @@ export default function Home() {
   const pulseMaximum = Math.max(...dashboard.pulse.map((item) => item.value), 1);
 
   return (
-    <WorkspaceShell breadcrumb="Dashboard" currentRoute="dashboard">
+    <WorkspaceShell breadcrumb="Dashboard" currentRoute="dashboard" workspace={workspace}>
       <div className="page-wrap">
           <section className="page-heading" id="overview">
             <div>
               <p className="eyebrow">Overview · SQLite dev workspace</p>
-              <h1>Good morning, Wayne.</h1>
+              <h1>Good morning, {workspace.userName}.</h1>
               <p>Keep your next conversation visible, useful, and easy to act on.</p>
             </div>
             <Link className="button button-primary" href="/leads">

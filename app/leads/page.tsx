@@ -3,12 +3,8 @@ import Link from "next/link";
 
 import { LeadPipeline } from "@/components/leads/lead-pipeline";
 import { WorkspaceShell } from "@/components/layout/workspace-shell";
-import {
-  ACTIVE_PIPELINE_STAGES,
-  DEMO_WORKSPACE_ID,
-  groupLeadsByStage,
-  listLeads,
-} from "@/lib/leads/demo-repository";
+import { requireWorkspace } from "@/lib/auth";
+import { ACTIVE_PIPELINE_STAGES, groupLeadsByStage, listLeads } from "@/lib/leads/demo-repository";
 
 export const metadata: Metadata = {
   title: "Leads — Outreach",
@@ -17,13 +13,14 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default function LeadsPage() {
-  const leads = listLeads(DEMO_WORKSPACE_ID);
+export default async function LeadsPage() {
+  const workspace = await requireWorkspace();
+  const leads = listLeads(workspace.workspaceId);
   const columns = groupLeadsByStage(leads);
   const highFitLeads = leads.filter((lead) => lead.fitScore >= 85).length;
 
   return (
-    <WorkspaceShell breadcrumb="Leads" currentRoute="leads">
+    <WorkspaceShell breadcrumb="Leads" currentRoute="leads" workspace={workspace}>
       <div className="page-wrap">
         <section className="page-heading leads-page-heading">
           <div>

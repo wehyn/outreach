@@ -1,12 +1,19 @@
-import { completeTask, DEMO_WORKSPACE_ID, getTaskById } from "@/lib/tasks/demo-repository";
+import { getWorkspaceContext } from "@/lib/auth";
+import { completeTask, getTaskById } from "@/lib/tasks/demo-repository";
 import { updateTaskSchema } from "@/lib/validation/task";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ taskId: string }> },
 ) {
+  const workspace = await getWorkspaceContext(request);
+
+  if (!workspace) {
+    return Response.json({ error: "Authentication required." }, { status: 401 });
+  }
+
   const { taskId } = await params;
-  const task = getTaskById(taskId, DEMO_WORKSPACE_ID);
+  const task = getTaskById(taskId, workspace.workspaceId);
 
   if (!task) {
     return Response.json({ error: "Task not found." }, { status: 404 });
@@ -32,7 +39,7 @@ export async function PATCH(
     );
   }
 
-  const updatedTask = completeTask(taskId, DEMO_WORKSPACE_ID);
+  const updatedTask = completeTask(taskId, workspace.workspaceId);
 
   if (!updatedTask) {
     return Response.json({ error: "Task not found." }, { status: 404 });

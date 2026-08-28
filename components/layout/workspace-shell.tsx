@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
+import { LogoutButton } from "@/components/auth/logout-button";
+import type { WorkspaceContext } from "@/lib/auth";
+
 export type IconName =
   | "activity"
   | "arrow"
@@ -101,11 +104,16 @@ export function WorkspaceShell({
   breadcrumb,
   children,
   currentRoute,
+  workspace,
 }: {
   breadcrumb: string;
   children: ReactNode;
   currentRoute: WorkspaceRoute;
+  workspace: WorkspaceContext;
 }) {
+  const workspaceInitial = workspace.workspaceName.trim().charAt(0).toUpperCase() || "W";
+  const userInitial = workspace.userName.trim().charAt(0).toUpperCase() || "U";
+
   return (
     <div className="workspace">
       <aside className="sidebar">
@@ -116,9 +124,9 @@ export function WorkspaceShell({
         </Link>
 
         <div className="workspace-switcher">
-          <span className="workspace-avatar">W</span>
+          <span className="workspace-avatar">{workspaceInitial}</span>
           <span className="workspace-copy">
-            <span className="workspace-name">Wayne&apos;s workspace</span>
+            <span className="workspace-name">{workspace.workspaceName}</span>
             <span className="workspace-plan">Personal</span>
           </span>
           <Icon name="chevron" size={15} />
@@ -186,7 +194,8 @@ export function WorkspaceShell({
               <span>Search workspace</span>
               <kbd>⌘ K</kbd>
             </button>
-            <span aria-label="Wayne" className="user-avatar">W</span>
+            <span aria-label={workspace.userName} className="user-avatar">{userInitial}</span>
+            <LogoutButton />
           </div>
         </header>
 
