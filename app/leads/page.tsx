@@ -56,7 +56,7 @@ export default function LeadsPage() {
               <p className="eyebrow">Current view</p>
               <h2 id="pipeline-heading">Active pipeline</h2>
             </div>
-            <span className="read-only-note">Read-only demo data</span>
+            <span className="read-only-note">Editable local demo data</span>
           </div>
           <LeadPipeline columns={columns} />
         </section>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { LeadActions } from "@/components/leads/lead-actions";
 import { Icon } from "@/components/layout/workspace-shell";
 import type { Lead, LeadActivityType } from "@/lib/leads/demo-repository";
 
@@ -57,7 +58,7 @@ export function LeadDetail({ lead }: { lead: Lead }) {
           <Icon name="arrow" size={14} />
           Back to leads
         </Link>
-        <span className="demo-badge">Read-only demo slice</span>
+        <span className="demo-badge">Editable local demo</span>
       </div>
 
       <section className="lead-detail-heading">
@@ -151,8 +152,17 @@ export function LeadDetail({ lead }: { lead: Lead }) {
               Due {formatCalendarDate(lead.nextActionDate)}
             </div>
             <p className="next-action-copy">Keep this action close to the reason for reaching out.</p>
-            <span className="read-only-note">Editing arrives in the next slice.</span>
+            <span className="read-only-note">Changes stay in this local demo process.</span>
           </section>
+
+          <LeadActions
+            lead={{
+              id: lead.id,
+              nextAction: lead.nextAction,
+              nextActionDate: lead.nextActionDate,
+              stage: lead.stage,
+            }}
+          />
 
           <section className="panel lead-detail-panel qualification-panel">
             <div className="panel-header">

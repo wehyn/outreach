@@ -1,27 +1,10 @@
+import { ACTIVE_PIPELINE_STAGES } from "./pipeline";
+import type { ActivePipelineStage, LeadStage } from "./pipeline";
+
+export { ACTIVE_PIPELINE_STAGES, PIPELINE_STAGES } from "./pipeline";
+export type { ActivePipelineStage, LeadStage } from "./pipeline";
+
 export const DEMO_WORKSPACE_ID = "workspace-wayne-demo";
-
-export const PIPELINE_STAGES = [
-  "New",
-  "Researching",
-  "Ready to Contact",
-  "Contacted",
-  "Replied",
-  "Meeting Booked",
-  "Proposal",
-  "Won",
-  "Lost",
-  "Nurture",
-] as const;
-
-export const ACTIVE_PIPELINE_STAGES = [
-  "Ready to Contact",
-  "Contacted",
-  "Replied",
-  "Meeting Booked",
-] as const;
-
-export type LeadStage = (typeof PIPELINE_STAGES)[number];
-export type ActivePipelineStage = (typeof ACTIVE_PIPELINE_STAGES)[number];
 export type LeadPriority = "high" | "medium" | "low";
 export type LeadActivityType = "email" | "note" | "call" | "meeting" | "stage_change";
 
@@ -349,14 +332,76 @@ function cloneLead(lead: Lead): Lead {
   };
 }
 
+export type LeadUpdate = {
+  stage?: LeadStage;
+  nextAction?: string;
+  nextActionDate?: string;
+};
+
+type DemoGlobalState = typeof globalThis & {
+  __outreachDemoLeads?: Lead[];
+};
+
+const demoGlobalState = globalThis as DemoGlobalState;
+const demoLeads = demoGlobalState.__outreachDemoLeads ?? (demoGlobalState.__outreachDemoLeads = DEMO_LEADS.map(cloneLead));
+
 export function listLeads(workspaceId: string): Lead[] {
-  return DEMO_LEADS.filter((lead) => lead.workspaceId === workspaceId).map(cloneLead);
+  return demoLeads.filter((lead) => lead.workspaceId === workspaceId).map(cloneLead);
 }
 
 export function getLeadById(id: string, workspaceId: string): Lead | null {
-  const lead = DEMO_LEADS.find((candidate) => candidate.id === id && candidate.workspaceId === workspaceId);
+  const lead = demoLeads.find((candidate) => candidate.id === id && candidate.workspaceId === workspaceId);
 
   return lead ? cloneLead(lead) : null;
+}
+
+function statusForStage(stage: LeadStage, currentStatus: Lead["status"]): Lead["status"] {
+  if (stage === "Won") {
+    return "won";
+  }
+
+  if (stage === "Lost") {
+    return "lost";
+  }
+
+  if (stage === "Nurture") {
+    return "nurture";
+  }
+
+  return currentStatus === "won" || currentStatus === "lost" ? "active" : currentStatus;
+}
+
+export function updateLead(id: string, workspaceId: string, input: LeadUpdate): Lead | null {
+  const index = demoLeads.findIndex((candidate) => candidate.id === id && candidate.workspaceId === workspaceId);
+
+  if (index === -1) {
+    return null;
+  }
+
+  const currentLead = demoLeads[index];
+  const nextStage = input.stage ?? currentLead.stage;
+  const stageChanged = nextStage !== currentLead.stage;
+  const nextActivity: LeadActivity | null = stageChanged
+    ? {
+        id: `activity-${currentLead.id}-stage-${currentLead.activity.length + 1}`,
+        type: "stage_change",
+        body: `Moved from ${currentLead.stage} to ${nextStage}.`,
+        occurredAt: new Date().toISOString(),
+        actor: "Wayne",
+      }
+    : null;
+  const updatedLead: Lead = {
+    ...currentLead,
+    stage: nextStage,
+    status: statusForStage(nextStage, currentLead.status),
+    nextAction: input.nextAction?.trim() ?? currentLead.nextAction,
+    nextActionDate: input.nextActionDate ?? currentLead.nextActionDate,
+    activity: nextActivity ? [...currentLead.activity, nextActivity] : currentLead.activity,
+  };
+
+  demoLeads[index] = updatedLead;
+
+  return cloneLead(updatedLead);
 }
 
 export function groupLeadsByStage(leads: readonly Lead[]): PipelineColumn[] {

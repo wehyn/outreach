@@ -1443,6 +1443,76 @@ input:focus-visible {
   font-size: 13px;
 }
 
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+.lead-actions-panel {
+  min-width: 0;
+}
+
+.lead-actions-form {
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px 20px;
+}
+
+.detail-input-label {
+  display: grid;
+  gap: 7px;
+  color: var(--ink-muted);
+  font-size: 10px;
+}
+
+.detail-input {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+  color: var(--ink);
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.detail-input:hover {
+  border-color: #555248;
+}
+
+.detail-input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.lead-actions-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.lead-actions-footer .button {
+  min-height: 38px;
+}
+
+.lead-save-status {
+  min-height: 15px;
+  margin: 0;
+  color: var(--ink-faint);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.lead-save-status-saved {
+  color: var(--success);
+}
+
+.lead-save-status-error {
+  color: var(--danger);
+}
+
 @media (max-width: 1180px) {
   .sidebar {
     width: 76px;
@@ -1658,6 +1728,11 @@ input:focus-visible {
     align-items: flex-start;
     flex-direction: column;
     gap: 4px;
+  }
+
+  .lead-actions-footer {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 
