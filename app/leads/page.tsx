@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   description: "Review active leads and open their outreach context.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function LeadsPage() {
   const leads = listLeads(DEMO_WORKSPACE_ID);
   const columns = groupLeadsByStage(leads);

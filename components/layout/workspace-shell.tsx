@@ -82,7 +82,7 @@ export function Icon({ name, size = 17 }: { name: IconName; size?: number }) {
   );
 }
 
-type WorkspaceRoute = "dashboard" | "leads";
+type WorkspaceRoute = "dashboard" | "leads" | "tasks";
 
 const navItems: Array<{
   label: string;
@@ -92,7 +92,7 @@ const navItems: Array<{
 }> = [
   { label: "Dashboard", icon: "grid", href: "/", route: "dashboard" },
   { label: "Leads", icon: "layers", href: "/leads", route: "leads" },
-  { label: "Tasks", icon: "check" },
+  { label: "Tasks", icon: "check", href: "/tasks", route: "tasks" },
   { label: "Companies", icon: "building" },
   { label: "Contacts", icon: "users" },
 ];

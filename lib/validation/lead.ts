@@ -1,15 +1,7 @@
 import { z } from "zod";
 
 import { PIPELINE_STAGES } from "../leads/pipeline";
-
-const calendarDateSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Use a date in YYYY-MM-DD format.")
-  .refine((value) => {
-    const parsed = new Date(`${value}T00:00:00Z`);
-
-    return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().startsWith(value);
-  }, "Use a real calendar date.");
+import { calendarDateSchema } from "./date";
 
 export const updateLeadSchema = z
   .object({

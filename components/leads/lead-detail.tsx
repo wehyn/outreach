@@ -4,6 +4,9 @@ import { ActivityForm } from "@/components/leads/activity-form";
 import { LeadActions } from "@/components/leads/lead-actions";
 import { Icon } from "@/components/layout/workspace-shell";
 import type { Lead, LeadActivityType } from "@/lib/leads/demo-repository";
+import { TaskForm } from "@/components/tasks/task-form";
+import { TaskList } from "@/components/tasks/task-list";
+import { listTasks } from "@/lib/tasks/demo-repository";
 
 const activityLabels: Record<LeadActivityType, string> = {
   email: "Email logged",
@@ -52,6 +55,8 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
 }
 
 export function LeadDetail({ lead }: { lead: Lead }) {
+  const leadTasks = listTasks(lead.workspaceId).filter((task) => task.leadId === lead.id);
+
   return (
     <div className="lead-detail-wrap">
       <div className="lead-detail-toolbar">
@@ -165,6 +170,22 @@ export function LeadDetail({ lead }: { lead: Lead }) {
               stage: lead.stage,
             }}
           />
+
+          <section className="panel lead-detail-panel task-panel">
+            <div className="panel-header">
+              <div>
+                <h3>Follow-up tasks</h3>
+                <p>Keep the next useful action attached to this lead.</p>
+              </div>
+              <Link className="text-link" href="/tasks">
+                View all
+              </Link>
+            </div>
+            <TaskList tasks={leadTasks} />
+            <div className="task-form-divider">
+              <TaskForm leadId={lead.id} />
+            </div>
+          </section>
 
           <section className="panel lead-detail-panel qualification-panel">
             <div className="panel-header">
