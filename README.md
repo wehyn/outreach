@@ -39,6 +39,7 @@ To use another SQLite file, set `OUTREACH_DB_PATH` before starting the server. T
 npm run lint
 npm run typecheck
 npm run test
+npm run test:e2e
 npm run build
 ```
 
