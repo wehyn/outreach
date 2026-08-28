@@ -1,97 +1,6 @@
-import type { ReactNode } from "react";
+import Link from "next/link";
 
-type IconName =
-  | "activity"
-  | "arrow"
-  | "building"
-  | "check"
-  | "chevron"
-  | "grid"
-  | "layers"
-  | "plus"
-  | "search"
-  | "settings"
-  | "users";
-
-function Icon({ name, size = 17 }: { name: IconName; size?: number }) {
-  const sharedProps = {
-    fill: "none",
-    stroke: "currentColor",
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    strokeWidth: 1.7,
-  };
-
-  const paths: Record<IconName, ReactNode> = {
-    activity: (
-      <>
-        <path {...sharedProps} d="M3.5 12.5h3l1.7-5 3.2 8 1.7-4h3.4" />
-      </>
-    ),
-    arrow: <path {...sharedProps} d="M4 9h10m-4-4 4 4-4 4" />,
-    building: (
-      <>
-        <path {...sharedProps} d="M4 15.5h12M5.5 15.5V5.2L10 3.5l4.5 1.7v10.3" />
-        <path {...sharedProps} d="M8 7.5h.01M12 7.5h.01M8 10.5h.01M12 10.5h.01" />
-      </>
-    ),
-    check: (
-      <>
-        <path {...sharedProps} d="M5 9.5 8 12l6-6" />
-        <rect {...sharedProps} height="12" rx="2" width="12" x="2" y="2" />
-      </>
-    ),
-    chevron: <path {...sharedProps} d="m6 8 3 3 3-3" />,
-    grid: (
-      <>
-        <rect {...sharedProps} height="5" rx="1" width="5" x="2.5" y="2.5" />
-        <rect {...sharedProps} height="5" rx="1" width="5" x="10.5" y="2.5" />
-        <rect {...sharedProps} height="5" rx="1" width="5" x="2.5" y="10.5" />
-        <rect {...sharedProps} height="5" rx="1" width="5" x="10.5" y="10.5" />
-      </>
-    ),
-    layers: (
-      <>
-        <path {...sharedProps} d="m9 3 6 3-6 3-6-3 6-3Z" />
-        <path {...sharedProps} d="m3 9 6 3 6-3M3 12l6 3 6-3" />
-      </>
-    ),
-    plus: <path {...sharedProps} d="M9 3v12M3 9h12" />,
-    search: (
-      <>
-        <circle {...sharedProps} cx="8" cy="8" r="4.8" />
-        <path {...sharedProps} d="m11.5 11.5 3.5 3.5" />
-      </>
-    ),
-    settings: (
-      <>
-        <circle {...sharedProps} cx="9" cy="9" r="2.4" />
-        <path {...sharedProps} d="m14 10.5 1.2 1.1-1.6 2.7-1.6-.6a6 6 0 0 1-1.6.9L10 16.2H7l-.4-1.6a6 6 0 0 1-1.6-.9l-1.6.6-1.6-2.7L3 10.5a6 6 0 0 1 0-3L1.8 6.4 3.4 3.7l1.6.6a6 6 0 0 1 1.6-.9L7 1.8h3l.4 1.6a6 6 0 0 1 1.6.9l1.6-.6 1.6 2.7L14 7.5a6 6 0 0 1 0 3Z" />
-      </>
-    ),
-    users: (
-      <>
-        <circle {...sharedProps} cx="9" cy="6" r="2.5" />
-        <path {...sharedProps} d="M4 15c.4-2.2 2.1-3.5 5-3.5s4.6 1.3 5 3.5" />
-        <path {...sharedProps} d="M4.2 8.7a2.1 2.1 0 0 0-2 2.2M13.8 8.7a2.1 2.1 0 0 1 2 2.2" />
-      </>
-    ),
-  };
-
-  return (
-    <svg aria-hidden="true" height={size} viewBox="0 0 18 18" width={size}>
-      {paths[name]}
-    </svg>
-  );
-}
-
-const navItems: Array<{ label: string; icon: IconName; href?: string; active?: boolean }> = [
-  { label: "Dashboard", icon: "grid", href: "#overview", active: true },
-  { label: "Leads", icon: "layers", href: "#pipeline" },
-  { label: "Tasks", icon: "check", href: "#tasks" },
-  { label: "Companies", icon: "building" },
-  { label: "Contacts", icon: "users" },
-];
+import { Icon, type IconName, WorkspaceShell } from "@/components/layout/workspace-shell";
 
 const summaryCards = [
   { label: "Active leads", value: "28", detail: "+4 this week", tone: "positive" },
@@ -112,30 +21,30 @@ const pipelineColumns = [
     title: "Ready to contact",
     count: "06",
     leads: [
-      { initials: "MC", name: "Maya Chen", company: "Brightline Studio", tag: "SEO", value: "$12k", due: "Today", score: "86 fit" },
-      { initials: "SP", name: "Sofia Patel", company: "Common Thread", tag: "Content", value: "$8k", due: "Tue", score: "79 fit" },
+      { id: "lead-maya-chen", initials: "MC", name: "Maya Chen", company: "Brightline Studio", tag: "SEO", value: "$12k", due: "Today", score: "86 fit" },
+      { id: "lead-sofia-patel", initials: "SP", name: "Sofia Patel", company: "Common Thread", tag: "Content", value: "$8k", due: "Tue", score: "79 fit" },
     ],
   },
   {
     title: "Contacted",
     count: "09",
     leads: [
-      { initials: "EB", name: "Evan Brooks", company: "Northstar Labs", tag: "Paid ads", value: "$18k", due: "Today", score: "91 fit" },
-      { initials: "JB", name: "Jon Bell", company: "Fieldwork Co.", tag: "Branding", value: "$6k", due: "Wed", score: "73 fit" },
+      { id: "lead-evan-brooks", initials: "EB", name: "Evan Brooks", company: "Northstar Labs", tag: "Paid ads", value: "$18k", due: "Today", score: "91 fit" },
+      { id: "lead-jon-bell", initials: "JB", name: "Jon Bell", company: "Fieldwork Co.", tag: "Branding", value: "$6k", due: "Wed", score: "73 fit" },
     ],
   },
   {
     title: "Replied",
     count: "04",
     leads: [
-      { initials: "AL", name: "Ari Lopez", company: "Good Common", tag: "Web dev", value: "$14k", due: "Today", score: "94 fit" },
+      { id: "lead-ari-lopez", initials: "AL", name: "Ari Lopez", company: "Good Common", tag: "Web dev", value: "$14k", due: "Today", score: "94 fit" },
     ],
   },
   {
     title: "Meeting booked",
     count: "03",
     leads: [
-      { initials: "RK", name: "Rina Kim", company: "Arc & Pine", tag: "Analytics", value: "$22k", due: "Oct 18", score: "88 fit" },
+      { id: "lead-rina-kim", initials: "RK", name: "Rina Kim", company: "Arc & Pine", tag: "Analytics", value: "$22k", due: "Oct 18", score: "88 fit" },
     ],
   },
 ];
@@ -149,94 +58,18 @@ const activities = [
 
 export default function Home() {
   return (
-    <div className="workspace">
-      <aside className="sidebar">
-        <a className="brand" href="#overview" aria-label="Outreach dashboard">
-          <span className="brand-mark">o</span>
-          <span>outreach</span>
-          <span className="brand-dot">.</span>
-        </a>
-
-        <div className="workspace-switcher">
-          <span className="workspace-avatar">W</span>
-          <span className="workspace-copy">
-            <span className="workspace-name">Wayne&apos;s workspace</span>
-            <span className="workspace-plan">Personal</span>
-          </span>
-          <Icon name="chevron" size={15} />
-        </div>
-
-        <nav aria-label="Primary navigation">
-          <p className="nav-section-label">Workspace</p>
-          <ul className="nav-list">
-            {navItems.map((item) =>
-              item.href ? (
-                <li key={item.label}>
-                  <a className={`nav-item${item.active ? " nav-item-active" : ""}`} href={item.href}>
-                    <Icon name={item.icon} />
-                    <span>{item.label}</span>
-                  </a>
-                </li>
-              ) : (
-                <li key={item.label}>
-                  <span className="nav-item nav-item-disabled" aria-disabled="true">
-                    <Icon name={item.icon} />
-                    <span>{item.label}</span>
-                    <span className="nav-item-status">soon</span>
-                  </span>
-                </li>
-              ),
-            )}
-          </ul>
-        </nav>
-
-        <div className="sidebar-bottom">
-          <nav aria-label="Secondary navigation">
-            <ul className="nav-list">
-              <li>
-                <span className="nav-item nav-item-disabled" aria-disabled="true">
-                  <Icon name="settings" />
-                  <span>Settings</span>
-                  <span className="nav-item-status">soon</span>
-                </span>
-              </li>
-            </ul>
-          </nav>
-          <div className="privacy-note">
-            <strong>Thoughtful outreach</strong>
-            <span>Keep the reason, context, and next step close to every lead.</span>
-          </div>
-        </div>
-      </aside>
-
-      <main className="main-content">
-        <header className="topbar">
-          <div className="breadcrumbs" aria-label="Breadcrumb">
-            <span>Workspace</span>
-            <Icon name="chevron" size={14} />
-            <strong>Dashboard</strong>
-          </div>
-          <div className="topbar-actions">
-            <button className="search-trigger" type="button" disabled aria-label="Search workspace coming soon">
-              <Icon name="search" size={15} />
-              <span>Search workspace</span>
-              <kbd>⌘ K</kbd>
-            </button>
-            <span className="user-avatar" aria-label="Wayne">W</span>
-          </div>
-        </header>
-
-        <div className="page-wrap">
+    <WorkspaceShell breadcrumb="Dashboard" currentRoute="dashboard">
+      <div className="page-wrap">
           <section className="page-heading" id="overview">
             <div>
               <p className="eyebrow">Overview · Demo workspace</p>
               <h1>Good morning, Wayne.</h1>
               <p>Keep your next conversation visible, useful, and easy to act on.</p>
             </div>
-            <a className="button button-primary" href="#pipeline">
+            <Link className="button button-primary" href="/leads">
               <Icon name="plus" size={15} />
               View pipeline
-            </a>
+            </Link>
           </section>
 
           <section className="summary-grid" aria-label="Workspace summary">
@@ -308,9 +141,9 @@ export default function Home() {
                 <p className="eyebrow">Pipeline</p>
                 <h2>Active opportunities</h2>
               </div>
-              <a className="text-link" href="#pipeline">
+              <Link className="text-link" href="/leads">
                 Open full pipeline <Icon name="arrow" size={15} />
-              </a>
+              </Link>
             </div>
             <div className="pipeline-board">
               {pipelineColumns.map((column) => (
@@ -321,7 +154,7 @@ export default function Home() {
                   </div>
                   <div className="lead-stack">
                     {column.leads.map((lead) => (
-                      <article className="lead-card" key={lead.name}>
+                      <Link className="lead-card lead-card-link" href={`/leads/${lead.id}`} key={lead.name}>
                         <div className="lead-card-top">
                           <span className="lead-avatar">{lead.initials}</span>
                           <span className="lead-more" aria-hidden="true">···</span>
@@ -336,7 +169,7 @@ export default function Home() {
                           <span>Next · {lead.due}</span>
                           <strong>{lead.score}</strong>
                         </div>
-                      </article>
+                      </Link>
                     ))}
                   </div>
                 </section>
@@ -376,8 +209,7 @@ export default function Home() {
               <div className="note-panel-footer"><span /> Manual outreach first</div>
             </aside>
           </section>
-        </div>
-      </main>
-    </div>
+      </div>
+    </WorkspaceShell>
   );
 }

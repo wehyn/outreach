@@ -2,7 +2,7 @@
 
 A focused workspace for researching prospects, managing company/contact relationships, tracking outreach, and staying ahead of follow-ups.
 
-The first slice is a responsive dashboard shell using the charcoal design system in `DESIGN.md`. It currently uses demo data; persistence, authentication, and API-backed CRM entities are implemented in later plan tasks.
+The current slice is a responsive dashboard and lead read flow using the charcoal design system in `DESIGN.md`. The `/leads` pipeline and `/leads/[leadId]` detail route use a typed, workspace-scoped demo repository. Data is still read-only demo data; persistence, authentication, and API-backed mutations are implemented in later vertical slices.
 
 ## Local development
 
@@ -26,7 +26,7 @@ Open http://localhost:3000.
 ```bash
 npm run lint
 npm run typecheck
-npm test
+npm run test
 npm run build
 ```
 
