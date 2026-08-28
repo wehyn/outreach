@@ -27,7 +27,7 @@ export default function LeadsPage() {
       <div className="page-wrap">
         <section className="page-heading leads-page-heading">
           <div>
-            <p className="eyebrow">Pipeline · Demo workspace</p>
+            <p className="eyebrow">Pipeline · SQLite dev workspace</p>
             <h1>Active opportunities.</h1>
             <p>Review the reason, next action, and context before you open a conversation.</p>
           </div>
@@ -58,7 +58,7 @@ export default function LeadsPage() {
               <p className="eyebrow">Current view</p>
               <h2 id="pipeline-heading">Active pipeline</h2>
             </div>
-            <span className="read-only-note">Editable local demo data</span>
+            <span className="read-only-note">Editable local SQLite data</span>
           </div>
           <LeadPipeline columns={columns} />
         </section>

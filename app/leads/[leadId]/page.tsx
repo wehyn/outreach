@@ -4,6 +4,8 @@ import { LeadDetail } from "@/components/leads/lead-detail";
 import { WorkspaceShell } from "@/components/layout/workspace-shell";
 import { DEMO_WORKSPACE_ID, getLeadById } from "@/lib/leads/demo-repository";
 
+export const dynamic = "force-dynamic";
+
 export default async function LeadPage({ params }: { params: Promise<{ leadId: string }> }) {
   const { leadId } = await params;
   const lead = getLeadById(leadId, DEMO_WORKSPACE_ID);

@@ -64,7 +64,7 @@ export function LeadDetail({ lead }: { lead: Lead }) {
           <Icon name="arrow" size={14} />
           Back to leads
         </Link>
-        <span className="demo-badge">Editable local demo</span>
+        <span className="demo-badge">Editable local SQLite</span>
       </div>
 
       <section className="lead-detail-heading">
@@ -127,7 +127,7 @@ export function LeadDetail({ lead }: { lead: Lead }) {
             <div className="panel-header">
               <div>
                 <h3>Activity timeline</h3>
-                <p>{lead.activity.length} recorded change{lead.activity.length === 1 ? "" : "s"} in this demo.</p>
+                <p>{lead.activity.length} recorded change{lead.activity.length === 1 ? "" : "s"} in this workspace.</p>
               </div>
               <span className="panel-count">Manual log</span>
             </div>
@@ -159,7 +159,7 @@ export function LeadDetail({ lead }: { lead: Lead }) {
               Due {formatCalendarDate(lead.nextActionDate)}
             </div>
             <p className="next-action-copy">Keep this action close to the reason for reaching out.</p>
-            <span className="read-only-note">Changes stay in this local demo process.</span>
+            <span className="read-only-note">Changes stay in this local SQLite workspace.</span>
           </section>
 
           <LeadActions

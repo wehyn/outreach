@@ -68,7 +68,7 @@ export function LeadActions({ lead }: { lead: EditableLead }) {
           <h3 id="lead-actions-heading">Update lead</h3>
           <p>Keep the next conversation moving.</p>
         </div>
-        <span className="panel-count">Local demo</span>
+        <span className="panel-count">Local SQLite</span>
       </div>
       <form className="lead-actions-form" onSubmit={handleSubmit}>
         <label className="detail-input-label" htmlFor="lead-stage">
@@ -110,7 +110,7 @@ export function LeadActions({ lead }: { lead: EditableLead }) {
             {saveState === "saving" ? "Saving…" : "Save changes"}
           </button>
           <p aria-live="polite" className={`lead-save-status lead-save-status-${saveState}`}>
-            {saveState === "saved" ? "Saved to the local demo workspace." : null}
+            {saveState === "saved" ? "Saved to the local SQLite workspace." : null}
             {saveState === "error" ? errorMessage : null}
           </p>
         </div>

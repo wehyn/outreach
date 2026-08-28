@@ -1,4 +1,7 @@
-import { DEMO_WORKSPACE_ID, getLeadById } from "../leads/demo-repository";
+import { randomUUID } from "node:crypto";
+
+import { getDatabase, withTransaction } from "../db";
+import { DEMO_WORKSPACE_ID, ensureDemoLeads, getLeadById } from "../leads/demo-repository";
 import type { CreateTaskInput, Task } from "./task";
 
 export { DEMO_WORKSPACE_ID } from "../leads/demo-repository";
@@ -58,81 +61,131 @@ const INITIAL_TASKS: Task[] = [
   },
 ];
 
-type DemoTaskGlobalState = typeof globalThis & {
-  __outreachDemoTasks?: Task[];
+type TaskRow = {
+  company_name: string;
+  completed_at: string | null;
+  created_at: string;
+  due_date: string;
+  id: string;
+  lead_id: string;
+  lead_name: string;
+  priority: Task["priority"];
+  status: Task["status"];
+  title: string;
+  workspace_id: string;
 };
 
-function cloneTask(task: Task): Task {
-  return { ...task };
+function seedDemoTasks() {
+  ensureDemoLeads();
+  const database = getDatabase();
+  const insertTask = database.prepare(
+    `INSERT OR IGNORE INTO tasks (
+      id, workspace_id, lead_id, title, due_date, priority, status, created_at, completed_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  );
+
+  for (const task of INITIAL_TASKS) {
+    insertTask.run(
+      task.id,
+      task.workspaceId,
+      task.leadId,
+      task.title,
+      task.dueDate,
+      task.priority,
+      task.status,
+      task.createdAt,
+      task.completedAt,
+    );
+  }
 }
 
-const demoTaskGlobalState = globalThis as DemoTaskGlobalState;
-const demoTasks =
-  demoTaskGlobalState.__outreachDemoTasks ?? (demoTaskGlobalState.__outreachDemoTasks = INITIAL_TASKS.map(cloneTask));
+function taskFromRow(row: TaskRow): Task {
+  return {
+    companyName: row.company_name,
+    completedAt: row.completed_at,
+    createdAt: row.created_at,
+    dueDate: row.due_date,
+    id: row.id,
+    leadId: row.lead_id,
+    leadName: row.lead_name,
+    priority: row.priority,
+    status: row.status,
+    title: row.title,
+    workspaceId: row.workspace_id,
+  };
+}
+
+const taskSelect = `
+  SELECT
+    t.id, t.workspace_id, t.lead_id, t.title, t.due_date, t.priority, t.status,
+    t.created_at, t.completed_at, l.name AS lead_name, c.name AS company_name
+  FROM tasks t
+  JOIN leads l ON l.id = t.lead_id AND l.workspace_id = t.workspace_id
+  JOIN companies c ON c.id = l.company_id AND c.workspace_id = l.workspace_id
+`;
 
 export function listTasks(workspaceId: string): Task[] {
-  return demoTasks
-    .filter((task) => task.workspaceId === workspaceId)
-    .sort((left, right) => {
-      if (left.status !== right.status) {
-        return left.status === "open" ? -1 : 1;
-      }
+  seedDemoTasks();
+  const database = getDatabase();
+  const rows = database
+    .prepare(
+      `${taskSelect}
+       WHERE t.workspace_id = ?
+       ORDER BY CASE WHEN t.status = 'open' THEN 0 ELSE 1 END, t.due_date ASC, t.id ASC`,
+    )
+    .all(workspaceId) as TaskRow[];
 
-      return left.dueDate.localeCompare(right.dueDate);
-    })
-    .map(cloneTask);
+  return rows.map(taskFromRow);
 }
 
 export function getTaskById(id: string, workspaceId: string): Task | null {
-  const task = demoTasks.find((candidate) => candidate.id === id && candidate.workspaceId === workspaceId);
+  seedDemoTasks();
+  const database = getDatabase();
+  const row = database
+    .prepare(`${taskSelect} WHERE t.id = ? AND t.workspace_id = ?`)
+    .get(id, workspaceId) as TaskRow | undefined;
 
-  return task ? cloneTask(task) : null;
+  return row ? taskFromRow(row) : null;
 }
 
 export function createTask(leadId: string, workspaceId: string, input: CreateTaskInput): Task | null {
+  seedDemoTasks();
   const lead = getLeadById(leadId, workspaceId);
 
   if (!lead) {
     return null;
   }
 
-  const task: Task = {
-    companyName: lead.company.name,
-    completedAt: null,
-    createdAt: new Date().toISOString(),
-    dueDate: input.dueDate,
-    id: `task-${leadId}-${demoTasks.length + 1}`,
-    leadId,
-    leadName: lead.name,
-    priority: input.priority,
-    status: "open",
-    title: input.title.trim(),
-    workspaceId,
-  };
+  const taskId = `task-${randomUUID()}`;
+  const database = getDatabase();
 
-  demoTasks.push(task);
+  database
+    .prepare(
+      `INSERT INTO tasks (
+        id, workspace_id, lead_id, title, due_date, priority, status, created_at, completed_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .run(taskId, workspaceId, leadId, input.title.trim(), input.dueDate, input.priority, "open", new Date().toISOString(), null);
 
-  return cloneTask(task);
+  return getTaskById(taskId, workspaceId);
 }
 
 export function completeTask(id: string, workspaceId: string): Task | null {
-  const index = demoTasks.findIndex((candidate) => candidate.id === id && candidate.workspaceId === workspaceId);
+  const currentTask = getTaskById(id, workspaceId);
 
-  if (index === -1) {
+  if (!currentTask) {
     return null;
   }
 
-  const currentTask = demoTasks[index];
-  const completedTask: Task =
-    currentTask.status === "completed"
-      ? currentTask
-      : {
-          ...currentTask,
-          completedAt: new Date().toISOString(),
-          status: "completed",
-        };
+  if (currentTask.status === "completed") {
+    return currentTask;
+  }
 
-  demoTasks[index] = completedTask;
+  withTransaction((database) => {
+    database
+      .prepare("UPDATE tasks SET status = ?, completed_at = ? WHERE id = ? AND workspace_id = ?")
+      .run("completed", new Date().toISOString(), id, workspaceId);
+  });
 
-  return cloneTask(completedTask);
+  return getTaskById(id, workspaceId);
 }

@@ -23,7 +23,7 @@ export default function TasksPage() {
       <div className="page-wrap">
         <section className="page-heading leads-page-heading">
           <div>
-            <p className="eyebrow">Follow-ups · Demo workspace</p>
+            <p className="eyebrow">Follow-ups · SQLite dev workspace</p>
             <h1>Keep the next touch visible.</h1>
             <p>Tasks stay attached to the lead context, so completion never loses the reason behind the action.</p>
           </div>
@@ -54,7 +54,7 @@ export default function TasksPage() {
               <p className="eyebrow">Current view</p>
               <h2 id="tasks-heading">All follow-ups</h2>
             </div>
-            <span className="read-only-note">Editable local demo data</span>
+            <span className="read-only-note">Editable local SQLite data</span>
           </div>
           <div className="panel task-page-panel">
             <TaskList tasks={tasks} />
