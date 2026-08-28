@@ -1,10 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type LogoutState = "idle" | "submitting" | "error";
 
 export function LogoutButton() {
+  const router = useRouter();
   const [state, setState] = useState<LogoutState>("idle");
 
   async function handleLogout() {
@@ -17,7 +19,7 @@ export function LogoutButton() {
         throw new Error("Logout failed.");
       }
 
-      window.location.assign("/login");
+      router.push("/login");
     } catch {
       setState("error");
     }
