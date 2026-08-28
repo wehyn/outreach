@@ -21,7 +21,9 @@ npm run dev
 
 Open http://localhost:3000.
 
-Configure the local account before signing in. Keep these values outside the repository:
+On a fresh database, open `/register` to create the first local account. This development slice supports one account per SQLite database. Keep the account credentials outside the repository.
+
+For scripted or automated bootstrapping, the server can provision the first account from these environment variables:
 
 ```bash
 export OUTREACH_AUTH_EMAIL="you@example.com"
@@ -29,7 +31,7 @@ export OUTREACH_AUTH_PASSWORD="use-a-local-password-at-least-12-characters"
 export OUTREACH_AUTH_NAME="Your Name"
 ```
 
-The first successful sign-in provisions the configured local account in the demo workspace. Passwords are stored as scrypt hashes; sessions store only an opaque token hash.
+The first successful sign-in with the configured credentials provisions that account in the demo workspace. Registered accounts are stored in SQLite, passwords are stored as scrypt hashes, and sessions store only an opaque token hash. If no account exists yet, the login form explains that registration is required.
 
 To use another SQLite file, set `OUTREACH_DB_PATH` before starting the server. Tests use an isolated in-memory database automatically.
 

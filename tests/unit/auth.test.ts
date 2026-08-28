@@ -5,6 +5,8 @@ import {
   createSession,
   getSessionFromToken,
   getWorkspaceContext,
+  hasRegisteredUser,
+  registerCredentials,
   SESSION_COOKIE_NAME,
   setSessionCookie,
 } from "../../lib/auth";
@@ -20,6 +22,30 @@ beforeEach(() => {
 });
 
 describe("local session authentication", () => {
+  it("registers the first local account and resolves it to the demo workspace", () => {
+    expect(hasRegisteredUser()).toBe(false);
+
+    const identity = registerCredentials("new-owner@example.com", AUTH_PASSWORD, "New Owner");
+
+    expect(identity).toMatchObject({
+      email: "new-owner@example.com",
+      userName: "New Owner",
+      workspaceId: DEMO_WORKSPACE_ID,
+    });
+    expect(hasRegisteredUser()).toBe(true);
+    expect(authenticateCredentials("new-owner@example.com", AUTH_PASSWORD)).toMatchObject({
+      email: "new-owner@example.com",
+      userName: "New Owner",
+    });
+  });
+
+  it("does not replace the existing first account during a second registration", () => {
+    expect(registerCredentials(AUTH_EMAIL, AUTH_PASSWORD, "Wayne")).not.toBeNull();
+
+    expect(registerCredentials("second-owner@example.com", AUTH_PASSWORD, "Second Owner")).toBeNull();
+    expect(authenticateCredentials("second-owner@example.com", AUTH_PASSWORD)).toBeNull();
+  });
+
   it("accepts configured credentials and rejects an invalid password", () => {
     expect(authenticateCredentials(AUTH_EMAIL, AUTH_PASSWORD)).toMatchObject({
       email: AUTH_EMAIL,

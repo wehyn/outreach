@@ -35,13 +35,28 @@ test("carries a new lead through the core outreach workflow", async ({ page }) =
 
   await page.goto("/login");
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
-  await page.getByLabel("Email").fill(authEmail);
-  await page.getByLabel("Password").fill(authPassword);
+  await expect(page.getByText("No account is registered in this local database yet.", { exact: false })).toBeVisible();
+  await page.getByLabel("Email").fill("unregistered@example.com");
+  await page.getByLabel("Password").fill("e2e-fixture-password-1234");
   await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.getByText("No account is registered yet. Create a local account to get started.", { exact: true })).toBeVisible();
+  expect(browserErrors.filter((error) => error.includes("409 (Conflict)")).length).toBe(1);
+  browserErrors.length = 0;
+  await page.getByRole("link", { name: "Register", exact: true }).click();
+
+  await expect(page).toHaveURL(/\/register$/);
+  await expect(page.getByRole("heading", { name: "Create your Outreach account.", exact: true })).toBeVisible();
+  await page.getByLabel("Name").fill("Wayne");
+  await page.getByLabel("Email").fill(authEmail);
+  await page.getByLabel("Password", { exact: true }).fill(authPassword);
+  await page.getByLabel("Confirm password", { exact: true }).fill(authPassword);
+  await page.getByRole("button", { name: "Create account" }).click();
 
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { name: "Good morning, Wayne." })).toBeVisible();
 
+  await page.goto("/login");
+  await expect(page).toHaveURL(/\/$/);
   await page.goto("/leads");
   await page.locator("summary").filter({ hasText: "Add a lead" }).click();
   await page.getByLabel("Company name").fill(createdLead.companyName);

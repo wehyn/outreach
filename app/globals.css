@@ -1848,6 +1848,28 @@ input:focus-visible {
   line-height: 1.55;
 }
 
+.auth-notice {
+  margin: 18px 0 0;
+  border: 1px solid rgba(215, 168, 95, 0.28);
+  border-radius: var(--radius-sm);
+  background: var(--accent-wash);
+  color: var(--ink-muted);
+  font-size: 11px;
+  line-height: 1.55;
+  padding: 10px 12px;
+}
+
+.auth-notice a,
+.auth-switch a {
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.auth-notice a:hover,
+.auth-switch a:hover {
+  color: var(--ink);
+}
+
 .auth-form {
   display: grid;
   gap: 16px;
@@ -1876,6 +1898,13 @@ input:focus-visible {
 .auth-submit {
   width: 100%;
   margin-top: 4px;
+}
+
+.auth-switch {
+  margin: 0;
+  color: var(--ink-faint);
+  font-size: 12px;
+  text-align: center;
 }
 
 .form-error {

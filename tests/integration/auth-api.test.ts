@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { POST as login } from "../../app/api/auth/login/route";
 import { POST as logout } from "../../app/api/auth/logout/route";
+import { POST as register } from "../../app/api/auth/register/route";
 import { PATCH as updateLead } from "../../app/api/leads/[leadId]/route";
 import { getWorkspaceContext } from "../../lib/auth";
 import { DEMO_WORKSPACE_ID } from "../../lib/leads/demo-repository";
@@ -34,6 +35,63 @@ async function loginForCookie() {
 }
 
 describe("authentication API", () => {
+  it("explains that registration is required when no account exists", async () => {
+    const response = await login(requestWithBody({ email: "new-owner@example.com", password: AUTH_PASSWORD }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toEqual({
+      code: "ACCOUNT_NOT_REGISTERED",
+      error: "No account is registered yet. Create a local account to get started.",
+    });
+  });
+
+  it("registers the first account and creates a session cookie", async () => {
+    const response = await register(
+      requestWithBody({
+        confirmPassword: AUTH_PASSWORD,
+        email: AUTH_EMAIL,
+        name: "Wayne",
+        password: AUTH_PASSWORD,
+      }),
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(payload).toMatchObject({
+      user: { email: AUTH_EMAIL, name: "Wayne" },
+      workspace: { id: DEMO_WORKSPACE_ID, name: "Wayne's workspace" },
+    });
+    expect(response.headers.get("set-cookie")).toEqual(expect.stringContaining("outreach_session="));
+  });
+
+  it("rejects registration after the first account already exists", async () => {
+    await register(
+      requestWithBody({
+        confirmPassword: AUTH_PASSWORD,
+        email: AUTH_EMAIL,
+        name: "Wayne",
+        password: AUTH_PASSWORD,
+      }),
+    );
+
+    const response = await register(
+      requestWithBody({
+        confirmPassword: AUTH_PASSWORD,
+        email: "second-owner@example.com",
+        name: "Second Owner",
+        password: AUTH_PASSWORD,
+      }),
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toEqual({
+      code: "ACCOUNT_EXISTS",
+      error: "An account is already registered. Sign in with that account.",
+    });
+  });
+
   it("creates a session cookie for valid configured credentials", async () => {
     const response = await login(requestWithBody({ email: AUTH_EMAIL, password: AUTH_PASSWORD }));
     const payload = await response.json();
