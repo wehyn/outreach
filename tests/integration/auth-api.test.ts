@@ -107,10 +107,36 @@ describe("authentication API", () => {
   });
 
   it("rejects invalid credentials without creating a session", async () => {
+    await register(
+      requestWithBody({
+        confirmPassword: AUTH_PASSWORD,
+        email: AUTH_EMAIL,
+        name: "Wayne",
+        password: AUTH_PASSWORD,
+      }),
+    );
+
     const response = await login(requestWithBody({ email: AUTH_EMAIL, password: "wrong-password" }));
 
     expect(response.status).toBe(401);
     expect(response.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("keeps first-account registration available after a failed configured login", async () => {
+    const loginResponse = await login(requestWithBody({ email: AUTH_EMAIL, password: "wrong-password" }));
+
+    expect(loginResponse.status).toBe(409);
+
+    const registrationResponse = await register(
+      requestWithBody({
+        confirmPassword: AUTH_PASSWORD,
+        email: AUTH_EMAIL,
+        name: "Wayne",
+        password: AUTH_PASSWORD,
+      }),
+    );
+
+    expect(registrationResponse.status).toBe(201);
   });
 
   it("rejects protected lead mutations without an authenticated session", async () => {
