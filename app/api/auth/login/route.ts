@@ -1,4 +1,4 @@
-import { authenticateCredentials, createSession, isAuthConfigured, setSessionCookie } from "@/lib/auth";
+import { authenticateCredentials, createSession, hasRegisteredUser, setSessionCookie } from "@/lib/auth";
 import { loginSchema } from "@/lib/validation/auth";
 
 export async function POST(request: Request) {
@@ -22,16 +22,19 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!isAuthConfigured()) {
-    return Response.json(
-      { error: "Local authentication is not configured. Set OUTREACH_AUTH_EMAIL and OUTREACH_AUTH_PASSWORD." },
-      { status: 503 },
-    );
-  }
-
   const identity = authenticateCredentials(parsed.data.email, parsed.data.password);
 
   if (!identity) {
+    if (!hasRegisteredUser()) {
+      return Response.json(
+        {
+          code: "ACCOUNT_NOT_REGISTERED",
+          error: "No account is registered yet. Create a local account to get started.",
+        },
+        { status: 409 },
+      );
+    }
+
     return Response.json({ error: "Invalid email or password." }, { status: 401 });
   }
 

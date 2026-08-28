@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 import { LoginForm } from "@/components/auth/login-form";
-import { getSession } from "@/lib/auth";
+import { getSession, hasRegisteredUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export default async function LoginPage({
   }
 
   const params = await searchParams;
+  const accountRegistered = hasRegisteredUser();
 
   return (
     <main className="auth-page">
@@ -29,7 +31,12 @@ export default async function LoginPage({
         </div>
         <p className="eyebrow">Private workspace</p>
         <h1 id="login-heading">Sign in to Outreach.</h1>
-        <p className="auth-intro">Use the local workspace credentials configured on the server.</p>
+        <p className="auth-intro">Use the local workspace credentials for this database.</p>
+        {!accountRegistered ? (
+          <p className="auth-notice" role="status">
+            No account is registered in this local database yet. <Link href="/register">Create one</Link> to get started.
+          </p>
+        ) : null}
         <LoginForm redirectTo={safeRedirectPath(params?.next)} />
       </section>
     </main>

@@ -34,6 +34,7 @@ function ensureDatabaseDirectory(path: string) {
 function initializeDatabase(database: DatabaseSync) {
   database.exec(`
     PRAGMA foreign_keys = ON;
+    PRAGMA busy_timeout = 5000;
 
     CREATE TABLE IF NOT EXISTS workspaces (
       id TEXT PRIMARY KEY,
@@ -138,6 +139,7 @@ function initializeDatabase(database: DatabaseSync) {
     CREATE INDEX IF NOT EXISTS activities_workspace_occurred_idx ON activities(workspace_id, occurred_at);
     CREATE INDEX IF NOT EXISTS tasks_workspace_status_due_idx ON tasks(workspace_id, status, due_date);
     CREATE INDEX IF NOT EXISTS sessions_token_hash_idx ON sessions(token_hash);
+    CREATE UNIQUE INDEX IF NOT EXISTS users_single_account_idx ON users ((1));
   `);
 }
 
@@ -169,7 +171,7 @@ export function closeDatabase() {
 export function withTransaction<T>(callback: (database: DatabaseSync) => T) {
   const database = getDatabase();
 
-  database.exec("BEGIN");
+  database.exec("BEGIN IMMEDIATE");
 
   try {
     const result = callback(database);

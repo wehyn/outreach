@@ -5,9 +5,12 @@ import {
   createSession,
   getSessionFromToken,
   getWorkspaceContext,
+  hasRegisteredUser,
+  registerCredentials,
   SESSION_COOKIE_NAME,
   setSessionCookie,
 } from "../../lib/auth";
+import { getDatabase } from "../../lib/db";
 import { DEMO_WORKSPACE_ID } from "../../lib/leads/demo-repository";
 
 const AUTH_EMAIL = "wayne@example.com";
@@ -20,6 +23,51 @@ beforeEach(() => {
 });
 
 describe("local session authentication", () => {
+  it("registers the first local account and resolves it to the demo workspace", () => {
+    expect(hasRegisteredUser()).toBe(false);
+
+    const identity = registerCredentials("new-owner@example.com", AUTH_PASSWORD, "New Owner");
+
+    expect(identity).toMatchObject({
+      email: "new-owner@example.com",
+      userName: "New Owner",
+      workspaceId: DEMO_WORKSPACE_ID,
+    });
+    expect(hasRegisteredUser()).toBe(true);
+    expect(authenticateCredentials("new-owner@example.com", AUTH_PASSWORD)).toMatchObject({
+      email: "new-owner@example.com",
+      userName: "New Owner",
+    });
+  });
+
+  it("does not replace the existing first account during a second registration", () => {
+    expect(registerCredentials(AUTH_EMAIL, AUTH_PASSWORD, "Wayne")).not.toBeNull();
+
+    expect(registerCredentials("second-owner@example.com", AUTH_PASSWORD, "Second Owner")).toBeNull();
+    expect(authenticateCredentials("second-owner@example.com", AUTH_PASSWORD)).toBeNull();
+  });
+
+  it("does not provision the configured account after a failed first login", () => {
+    expect(hasRegisteredUser()).toBe(false);
+
+    expect(authenticateCredentials(AUTH_EMAIL, "wrong-password")).toBeNull();
+
+    expect(hasRegisteredUser()).toBe(false);
+  });
+
+  it("enforces the single-account invariant at the database boundary", () => {
+    const database = getDatabase();
+    const insertUser = database.prepare(
+      "INSERT INTO users (id, email, name, password_hash, created_at) VALUES (?, ?, ?, ?, ?)",
+    );
+
+    insertUser.run("user-one", "one@example.com", "One", "hash-one", "2026-01-01T00:00:00.000Z");
+
+    expect(() => {
+      insertUser.run("user-two", "two@example.com", "Two", "hash-two", "2026-01-01T00:00:00.000Z");
+    }).toThrow();
+  });
+
   it("accepts configured credentials and rejects an invalid password", () => {
     expect(authenticateCredentials(AUTH_EMAIL, AUTH_PASSWORD)).toMatchObject({
       email: AUTH_EMAIL,

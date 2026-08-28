@@ -68,6 +68,15 @@ export function isAuthConfigured() {
   return configuredCredentials() !== null;
 }
 
+export function hasRegisteredUser() {
+  const database = getDatabase();
+  const row = database.prepare("SELECT 1 AS registered FROM users LIMIT 1").get() as
+    | { registered: number }
+    | undefined;
+
+  return row?.registered === 1;
+}
+
 function hashPassword(password: string, salt: string) {
   const derivedKey = scryptSync(password, salt, PASSWORD_KEY_LENGTH, {
     maxmem: 32 * 1024 * 1024,
@@ -101,6 +110,13 @@ function verifyPassword(password: string, encodedHash: string) {
   return expectedKey.length === actualKey.length && timingSafeEqual(expectedKey, actualKey);
 }
 
+function matchesConfiguredPassword(password: string, configuredPassword: string) {
+  const actualPassword = Buffer.from(password);
+  const expectedPassword = Buffer.from(configuredPassword);
+
+  return actualPassword.length === expectedPassword.length && timingSafeEqual(actualPassword, expectedPassword);
+}
+
 function hashSessionToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
@@ -131,71 +147,74 @@ function identityForUser(user: UserRow): AuthIdentity | null {
   };
 }
 
-function ensureConfiguredUser() {
+function getUserByEmail(email: string) {
+  return getDatabase()
+    .prepare("SELECT id, email, name, password_hash FROM users WHERE email = ?")
+    .get(email) as UserRow | undefined;
+}
+
+function createFirstUser(email: string, name: string, password: string) {
+  let userId: string | null = null;
+
+  withTransaction((database) => {
+    const existingUser = database.prepare("SELECT 1 AS registered FROM users LIMIT 1").get();
+
+    if (existingUser) {
+      return;
+    }
+
+    userId = `user-${randomUUID()}`;
+    database
+      .prepare("INSERT INTO users (id, email, name, password_hash, created_at) VALUES (?, ?, ?, ?, ?)")
+      .run(userId, email, name, createPasswordHash(password), new Date().toISOString());
+    database
+      .prepare(
+        `INSERT INTO workspace_members (workspace_id, user_id, role, created_at)
+         VALUES (?, ?, ?, ?)`,
+      )
+      .run(DEMO_WORKSPACE_ID, userId, "owner", new Date().toISOString());
+  });
+
+  return userId ? getUserByEmail(email) : null;
+}
+
+export function registerCredentials(email: string, password: string, name: string): AuthIdentity | null {
+  ensureDemoLeads();
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedName = name.trim();
+  const user = createFirstUser(normalizedEmail, normalizedName, password);
+
+  return user ? identityForUser(user) : null;
+}
+
+export function authenticateCredentials(email: string, password: string): AuthIdentity | null {
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = getUserByEmail(normalizedEmail);
+
+  if (user) {
+    const identity = identityForUser(user);
+
+    return identity && verifyPassword(password, user.password_hash) ? identity : null;
+  }
+
   const credentials = configuredCredentials();
 
-  if (!credentials) {
+  if (!credentials || credentials.email !== normalizedEmail || !matchesConfiguredPassword(password, credentials.password)) {
     return null;
   }
 
   ensureDemoLeads();
-  const database = getDatabase();
-  const existingUser = database
-    .prepare("SELECT id, email, name, password_hash FROM users WHERE email = ?")
-    .get(credentials.email) as UserRow | undefined;
+  const configuredUser = createFirstUser(credentials.email, credentials.name, credentials.password);
 
-  if (!existingUser) {
-    withTransaction((transactionDatabase) => {
-      transactionDatabase
-        .prepare("INSERT OR IGNORE INTO users (id, email, name, password_hash, created_at) VALUES (?, ?, ?, ?, ?)")
-        .run(
-          `user-${randomUUID()}`,
-          credentials.email,
-          credentials.name,
-          createPasswordHash(credentials.password),
-          new Date().toISOString(),
-        );
-    });
+  if (configuredUser) {
+    return identityForUser(configuredUser);
   }
 
-  const user = database
-    .prepare("SELECT id, email, name, password_hash FROM users WHERE email = ?")
-    .get(credentials.email) as UserRow | undefined;
+  const racedUser = getUserByEmail(normalizedEmail);
+  const identity = racedUser ? identityForUser(racedUser) : null;
 
-  if (!user) {
-    return null;
-  }
-
-  withTransaction((transactionDatabase) => {
-    transactionDatabase
-      .prepare(
-        `INSERT OR IGNORE INTO workspace_members (workspace_id, user_id, role, created_at)
-         VALUES (?, ?, ?, ?)`,
-      )
-      .run(DEMO_WORKSPACE_ID, user.id, "owner", new Date().toISOString());
-  });
-
-  return {
-    credentials,
-    identity: identityForUser(user),
-    passwordHash: user.password_hash,
-  };
-}
-
-export function authenticateCredentials(email: string, password: string): AuthIdentity | null {
-  const credentials = configuredCredentials();
-
-  if (!credentials || credentials.email !== email.trim().toLowerCase()) {
-    return null;
-  }
-
-  const configuredUser = ensureConfiguredUser();
-
-  if (!configuredUser || !configuredUser.identity || !verifyPassword(password, configuredUser.passwordHash)) {
-    return null;
-  }
-
-  return configuredUser.identity;
+  return identity && racedUser && verifyPassword(password, racedUser.password_hash) ? identity : null;
 }
 
 export function createSession(identity: AuthIdentity) {
