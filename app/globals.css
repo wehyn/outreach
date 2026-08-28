@@ -1513,6 +1513,95 @@ input:focus-visible {
   color: var(--danger);
 }
 
+.activity-form {
+  border-top: 1px solid var(--line-soft);
+  background: var(--surface-elevated);
+  padding: 16px 20px 18px;
+}
+
+.activity-form-fields {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.form-field {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 7px;
+  color: var(--ink-muted);
+  font-size: 10px;
+}
+
+.form-field > span {
+  color: var(--ink-faint);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+.form-field select {
+  min-height: 38px;
+  padding: 0 10px;
+}
+
+.form-field textarea {
+  min-height: 82px;
+  resize: vertical;
+  padding: 10px;
+  line-height: 1.55;
+}
+
+.form-field select:hover,
+.form-field textarea:hover {
+  border-color: #555248;
+}
+
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.activity-form-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.activity-form-footer .button {
+  min-height: 38px;
+}
+
+.form-status {
+  min-height: 15px;
+  margin: 0;
+  color: var(--ink-faint);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.form-status-saved {
+  color: var(--success);
+}
+
+.form-status-error {
+  color: var(--danger);
+}
+
 @media (max-width: 1180px) {
   .sidebar {
     width: 76px;
@@ -1731,6 +1820,15 @@ input:focus-visible {
   }
 
   .lead-actions-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .activity-form-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .activity-form-footer {
     align-items: flex-start;
     flex-direction: column;
   }

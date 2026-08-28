@@ -1,5 +1,6 @@
 import { ACTIVE_PIPELINE_STAGES } from "./pipeline";
 import type { ActivePipelineStage, LeadStage } from "./pipeline";
+import type { ManualActivityType } from "./activity";
 
 export { ACTIVE_PIPELINE_STAGES, PIPELINE_STAGES } from "./pipeline";
 export type { ActivePipelineStage, LeadStage } from "./pipeline";
@@ -397,6 +398,39 @@ export function updateLead(id: string, workspaceId: string, input: LeadUpdate): 
     nextAction: input.nextAction?.trim() ?? currentLead.nextAction,
     nextActionDate: input.nextActionDate ?? currentLead.nextActionDate,
     activity: nextActivity ? [...currentLead.activity, nextActivity] : currentLead.activity,
+  };
+
+  demoLeads[index] = updatedLead;
+
+  return cloneLead(updatedLead);
+}
+
+export type LeadActivityInput = {
+  type: ManualActivityType;
+  body: string;
+  occurredAt?: string;
+};
+
+export function addLeadActivity(id: string, workspaceId: string, input: LeadActivityInput): Lead | null {
+  const index = demoLeads.findIndex((candidate) => candidate.id === id && candidate.workspaceId === workspaceId);
+
+  if (index === -1) {
+    return null;
+  }
+
+  const currentLead = demoLeads[index];
+  const occurredAt = input.occurredAt ?? new Date().toISOString();
+  const activity: LeadActivity = {
+    id: `activity-${currentLead.id}-${currentLead.activity.length + 1}`,
+    type: input.type,
+    body: input.body.trim(),
+    occurredAt,
+    actor: "Wayne",
+  };
+  const updatedLead: Lead = {
+    ...currentLead,
+    lastContactedAt: input.type === "note" ? currentLead.lastContactedAt : occurredAt,
+    activity: [...currentLead.activity, activity],
   };
 
   demoLeads[index] = updatedLead;

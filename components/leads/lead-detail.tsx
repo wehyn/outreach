@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ActivityForm } from "@/components/leads/activity-form";
 import { LeadActions } from "@/components/leads/lead-actions";
 import { Icon } from "@/components/layout/workspace-shell";
 import type { Lead, LeadActivityType } from "@/lib/leads/demo-repository";
@@ -125,6 +126,7 @@ export function LeadDetail({ lead }: { lead: Lead }) {
               </div>
               <span className="panel-count">Manual log</span>
             </div>
+            <ActivityForm leadId={lead.id} />
             <ol className="lead-timeline">
               {lead.activity.map((activity) => (
                 <li className="timeline-item" key={activity.id}>
