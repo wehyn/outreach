@@ -13,7 +13,7 @@ export async function PATCH(
   }
 
   const { leadId } = await params;
-  const existingLead = getLeadById(leadId, workspace.workspaceId);
+  const existingLead = await getLeadById(leadId, workspace.workspaceId);
 
   if (!existingLead) {
     return Response.json({ error: "Lead not found in this workspace." }, { status: 404 });
@@ -39,7 +39,7 @@ export async function PATCH(
     );
   }
 
-  const lead = updateLead(leadId, workspace.workspaceId, parsed.data);
+  const lead = await updateLead(leadId, workspace.workspaceId, parsed.data);
 
   if (!lead) {
     return Response.json({ error: "Lead not found in this workspace." }, { status: 404 });

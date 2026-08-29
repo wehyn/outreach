@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const lead = createLead(workspace.workspaceId, parsed.data);
+  const lead = await createLead(workspace.workspaceId, parsed.data);
 
   if (!lead) {
     return Response.json({ error: "Workspace could not be found." }, { status: 404 });

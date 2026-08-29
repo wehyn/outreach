@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function LeadPage({ params }: { params: Promise<{ leadId: string }> }) {
   const workspace = await requireWorkspace();
   const { leadId } = await params;
-  const lead = getLeadById(leadId, workspace.workspaceId);
+  const lead = await getLeadById(leadId, workspace.workspaceId);
 
   if (!lead) {
     notFound();

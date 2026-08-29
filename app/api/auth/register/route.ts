@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const identity = registerCredentials(parsed.data.email, parsed.data.password, parsed.data.name);
+  const identity = await registerCredentials(parsed.data.email, parsed.data.password, parsed.data.name);
 
   if (!identity) {
     return Response.json(
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const session = createSession(identity);
+  const session = await createSession(identity);
   const response = Response.json(
     {
       user: {

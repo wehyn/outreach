@@ -26,7 +26,8 @@ function formatPipelineValue(value: number) {
 
 export default async function Home() {
   const workspace = await requireWorkspace();
-  const dashboard = buildDashboardData(listLeads(workspace.workspaceId), listTasks(workspace.workspaceId));
+  const [leads, tasks] = await Promise.all([listLeads(workspace.workspaceId), listTasks(workspace.workspaceId)]);
+  const dashboard = buildDashboardData(leads, tasks);
   const summaryCards = [
     { label: "Active leads", value: String(dashboard.activeLeadCount), detail: "Across the active pipeline", tone: "positive" },
     { label: "Open follow-ups", value: formatCount(dashboard.openTaskCount), detail: `${dashboard.overdueTaskCount} overdue`, tone: "warning" },

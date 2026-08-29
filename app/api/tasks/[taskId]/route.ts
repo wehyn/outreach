@@ -13,7 +13,7 @@ export async function PATCH(
   }
 
   const { taskId } = await params;
-  const task = getTaskById(taskId, workspace.workspaceId);
+  const task = await getTaskById(taskId, workspace.workspaceId);
 
   if (!task) {
     return Response.json({ error: "Task not found." }, { status: 404 });
@@ -39,7 +39,7 @@ export async function PATCH(
     );
   }
 
-  const updatedTask = completeTask(taskId, workspace.workspaceId);
+  const updatedTask = await completeTask(taskId, workspace.workspaceId);
 
   if (!updatedTask) {
     return Response.json({ error: "Task not found." }, { status: 404 });

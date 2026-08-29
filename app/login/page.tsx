@@ -20,7 +20,7 @@ export default async function LoginPage({
   }
 
   const params = await searchParams;
-  const accountRegistered = hasRegisteredUser();
+  const accountRegistered = await hasRegisteredUser();
 
   return (
     <main className="auth-page">

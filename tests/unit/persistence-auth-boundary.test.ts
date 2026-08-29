@@ -8,10 +8,10 @@ afterEach(() => {
 });
 
 describe("authentication persistence boundary", () => {
-  it("routes registered-user checks through the auth repository", () => {
+  it("routes registered-user checks through the auth repository", async () => {
     const hasRegisteredUserInRepository = vi.spyOn(getPersistence().auth, "hasRegisteredUser");
 
-    expect(hasRegisteredUser()).toBe(false);
+    expect(await hasRegisteredUser()).toBe(false);
     expect(hasRegisteredUserInRepository).toHaveBeenCalledOnce();
   });
 });

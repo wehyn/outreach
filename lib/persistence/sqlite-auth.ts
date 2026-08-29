@@ -10,7 +10,7 @@ import type {
 
 export function createSqliteAuthRepository(): AuthRepository {
   return {
-    createFirstUser(input: CreateUserRecord) {
+    async createFirstUser(input: CreateUserRecord) {
       let createdUser: StoredUser | null = null;
 
       withTransaction((database) => {
@@ -41,7 +41,7 @@ export function createSqliteAuthRepository(): AuthRepository {
       return createdUser;
     },
 
-    createSession(input: CreateSessionRecord) {
+    async createSession(input: CreateSessionRecord) {
       withTransaction((database) => {
         database
           .prepare(
@@ -59,11 +59,11 @@ export function createSqliteAuthRepository(): AuthRepository {
       });
     },
 
-    deleteExpiredSessions(now: string) {
+    async deleteExpiredSessions(now: string) {
       getDatabase().prepare("DELETE FROM sessions WHERE expires_at <= ?").run(now);
     },
 
-    getSessionByTokenHash(tokenHash: string, now: string) {
+    async getSessionByTokenHash(tokenHash: string, now: string) {
       const row = getDatabase()
         .prepare(
           `SELECT
@@ -105,7 +105,7 @@ export function createSqliteAuthRepository(): AuthRepository {
         : undefined;
     },
 
-    getUserByEmail(email: string) {
+    async getUserByEmail(email: string) {
       const row = getDatabase()
         .prepare("SELECT id, email, name, password_hash FROM users WHERE email = ?")
         .get(email) as
@@ -127,7 +127,7 @@ export function createSqliteAuthRepository(): AuthRepository {
         : undefined;
     },
 
-    getWorkspaceForUser(userId: string) {
+    async getWorkspaceForUser(userId: string) {
       return getDatabase()
         .prepare(
           `SELECT w.id, w.name
@@ -140,7 +140,7 @@ export function createSqliteAuthRepository(): AuthRepository {
         .get(userId) as StoredWorkspace | undefined;
     },
 
-    hasRegisteredUser() {
+    async hasRegisteredUser() {
       const row = getDatabase().prepare("SELECT 1 AS registered FROM users LIMIT 1").get() as
         | { registered: number }
         | undefined;
@@ -148,7 +148,7 @@ export function createSqliteAuthRepository(): AuthRepository {
       return row?.registered === 1;
     },
 
-    revokeSession(tokenHash: string) {
+    async revokeSession(tokenHash: string) {
       getDatabase().prepare("DELETE FROM sessions WHERE token_hash = ?").run(tokenHash);
     },
   };

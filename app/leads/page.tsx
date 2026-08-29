@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 export default async function LeadsPage() {
   const workspace = await requireWorkspace();
-  const leads = listLeads(workspace.workspaceId);
+  const leads = await listLeads(workspace.workspaceId);
   const columns = groupLeadsByStage(leads);
   const highFitLeads = leads.filter((lead) => lead.fitScore >= 85).length;
 

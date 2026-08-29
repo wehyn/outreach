@@ -3,18 +3,18 @@ import type { CreateTaskInput, Task } from "./task";
 
 export type { CreateTaskInput, Task, TaskPriority, TaskStatus } from "./task";
 
-export function listTasks(workspaceId: string): Task[] {
+export async function listTasks(workspaceId: string): Promise<Task[]> {
   return getPersistence().tasks.listTasks(workspaceId);
 }
 
-export function getTaskById(id: string, workspaceId: string): Task | null {
+export async function getTaskById(id: string, workspaceId: string): Promise<Task | null> {
   return getPersistence().tasks.getTaskById(id, workspaceId);
 }
 
-export function createTask(leadId: string, workspaceId: string, input: CreateTaskInput): Task | null {
+export async function createTask(leadId: string, workspaceId: string, input: CreateTaskInput): Promise<Task | null> {
   return getPersistence().tasks.createTask(leadId, workspaceId, input);
 }
 
-export function completeTask(id: string, workspaceId: string): Task | null {
+export async function completeTask(id: string, workspaceId: string): Promise<Task | null> {
   return getPersistence().tasks.completeTask(id, workspaceId);
 }

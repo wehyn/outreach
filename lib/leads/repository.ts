@@ -6,27 +6,27 @@ import { ACTIVE_PIPELINE_STAGES } from "./pipeline";
 export { ACTIVE_PIPELINE_STAGES, PIPELINE_STAGES } from "./pipeline";
 export type { ActivePipelineStage, Lead, LeadActivity, LeadActivityInput, LeadActivityType, LeadCompany, LeadContact, LeadPriority, LeadUpdate, PipelineColumn } from "./types";
 
-export function ensureDemoLeads() {
+export async function ensureDemoLeads() {
   return getPersistence().leads.ensureDemoLeads();
 }
 
-export function listLeads(workspaceId: string) {
+export async function listLeads(workspaceId: string) {
   return getPersistence().leads.listLeads(workspaceId);
 }
 
-export function getLeadById(id: string, workspaceId: string) {
+export async function getLeadById(id: string, workspaceId: string) {
   return getPersistence().leads.getLeadById(id, workspaceId);
 }
 
-export function createLead(workspaceId: string, input: CreateLeadInput) {
+export async function createLead(workspaceId: string, input: CreateLeadInput) {
   return getPersistence().leads.createLead(workspaceId, input);
 }
 
-export function updateLead(id: string, workspaceId: string, input: LeadUpdate) {
+export async function updateLead(id: string, workspaceId: string, input: LeadUpdate) {
   return getPersistence().leads.updateLead(id, workspaceId, input);
 }
 
-export function addLeadActivity(id: string, workspaceId: string, input: LeadActivityInput) {
+export async function addLeadActivity(id: string, workspaceId: string, input: LeadActivityInput) {
   return getPersistence().leads.addLeadActivity(id, workspaceId, input);
 }
 

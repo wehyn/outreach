@@ -39,30 +39,30 @@ export type StoredWorkspace = {
 };
 
 export interface AuthRepository {
-  createFirstUser(input: CreateUserRecord): StoredUser | null;
-  createSession(input: CreateSessionRecord): void;
-  deleteExpiredSessions(now: string): void;
-  getSessionByTokenHash(tokenHash: string, now: string): StoredSession | undefined;
-  getUserByEmail(email: string): StoredUser | undefined;
-  getWorkspaceForUser(userId: string): StoredWorkspace | undefined;
-  hasRegisteredUser(): boolean;
-  revokeSession(tokenHash: string): void;
+  createFirstUser(input: CreateUserRecord): Promise<StoredUser | null>;
+  createSession(input: CreateSessionRecord): Promise<void>;
+  deleteExpiredSessions(now: string): Promise<void>;
+  getSessionByTokenHash(tokenHash: string, now: string): Promise<StoredSession | undefined>;
+  getUserByEmail(email: string): Promise<StoredUser | undefined>;
+  getWorkspaceForUser(userId: string): Promise<StoredWorkspace | undefined>;
+  hasRegisteredUser(): Promise<boolean>;
+  revokeSession(tokenHash: string): Promise<void>;
 }
 
 export interface LeadRepository {
-  addLeadActivity(id: string, workspaceId: string, input: LeadActivityInput): Lead | null;
-  createLead(workspaceId: string, input: CreateLeadInput): Lead | null;
-  ensureDemoLeads(): void;
-  getLeadById(id: string, workspaceId: string): Lead | null;
-  listLeads(workspaceId: string): Lead[];
-  updateLead(id: string, workspaceId: string, input: LeadUpdate): Lead | null;
+  addLeadActivity(id: string, workspaceId: string, input: LeadActivityInput): Promise<Lead | null>;
+  createLead(workspaceId: string, input: CreateLeadInput): Promise<Lead | null>;
+  ensureDemoLeads(): Promise<void>;
+  getLeadById(id: string, workspaceId: string): Promise<Lead | null>;
+  listLeads(workspaceId: string): Promise<Lead[]>;
+  updateLead(id: string, workspaceId: string, input: LeadUpdate): Promise<Lead | null>;
 }
 
 export interface TaskRepository {
-  completeTask(id: string, workspaceId: string): Task | null;
-  createTask(leadId: string, workspaceId: string, input: CreateTaskInput): Task | null;
-  getTaskById(id: string, workspaceId: string): Task | null;
-  listTasks(workspaceId: string): Task[];
+  completeTask(id: string, workspaceId: string): Promise<Task | null>;
+  createTask(leadId: string, workspaceId: string, input: CreateTaskInput): Promise<Task | null>;
+  getTaskById(id: string, workspaceId: string): Promise<Task | null>;
+  listTasks(workspaceId: string): Promise<Task[]>;
 }
 
 export type PersistenceProvider = {

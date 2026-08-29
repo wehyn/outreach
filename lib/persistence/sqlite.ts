@@ -7,18 +7,38 @@ export function createSqlitePersistence(): PersistenceProvider {
   return {
     auth: createSqliteAuthRepository(),
     leads: {
-      addLeadActivity: sqliteLeads.addLeadActivity,
-      createLead: sqliteLeads.createLead,
-      ensureDemoLeads: sqliteLeads.ensureDemoLeads,
-      getLeadById: sqliteLeads.getLeadById,
-      listLeads: sqliteLeads.listLeads,
-      updateLead: sqliteLeads.updateLead,
+      async addLeadActivity(id, workspaceId, input) {
+        return sqliteLeads.addLeadActivity(id, workspaceId, input);
+      },
+      async createLead(workspaceId, input) {
+        return sqliteLeads.createLead(workspaceId, input);
+      },
+      async ensureDemoLeads() {
+        sqliteLeads.ensureDemoLeads();
+      },
+      async getLeadById(id, workspaceId) {
+        return sqliteLeads.getLeadById(id, workspaceId);
+      },
+      async listLeads(workspaceId) {
+        return sqliteLeads.listLeads(workspaceId);
+      },
+      async updateLead(id, workspaceId, input) {
+        return sqliteLeads.updateLead(id, workspaceId, input);
+      },
     },
     tasks: {
-      completeTask: sqliteTasks.completeTask,
-      createTask: sqliteTasks.createTask,
-      getTaskById: sqliteTasks.getTaskById,
-      listTasks: sqliteTasks.listTasks,
+      async completeTask(id, workspaceId) {
+        return sqliteTasks.completeTask(id, workspaceId);
+      },
+      async createTask(leadId, workspaceId, input) {
+        return sqliteTasks.createTask(leadId, workspaceId, input);
+      },
+      async getTaskById(id, workspaceId) {
+        return sqliteTasks.getTaskById(id, workspaceId);
+      },
+      async listTasks(workspaceId) {
+        return sqliteTasks.listTasks(workspaceId);
+      },
     },
   };
 }

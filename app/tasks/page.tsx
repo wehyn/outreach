@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 export default async function TasksPage() {
   const workspace = await requireWorkspace();
-  const tasks = listTasks(workspace.workspaceId);
+  const tasks = await listTasks(workspace.workspaceId);
   const openTasks = tasks.filter((task) => task.status === "open");
   const completedTasks = tasks.length - openTasks.length;
   const leadCount = new Set(tasks.map((task) => task.leadId)).size;

@@ -52,7 +52,7 @@ export function isAuthConfigured() {
   return configuredCredentials() !== null;
 }
 
-export function hasRegisteredUser() {
+export async function hasRegisteredUser() {
   return getPersistence().auth.hasRegisteredUser();
 }
 
@@ -100,8 +100,8 @@ function hashSessionToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
 
-function identityForUser(user: StoredUser): AuthIdentity | null {
-  const workspace = getPersistence().auth.getWorkspaceForUser(user.id);
+async function identityForUser(user: StoredUser): Promise<AuthIdentity | null> {
+  const workspace = await getPersistence().auth.getWorkspaceForUser(user.id);
 
   if (!workspace) {
     return null;
@@ -116,11 +116,11 @@ function identityForUser(user: StoredUser): AuthIdentity | null {
   };
 }
 
-function getUserByEmail(email: string) {
+async function getUserByEmail(email: string) {
   return getPersistence().auth.getUserByEmail(email);
 }
 
-function createFirstUser(email: string, name: string, password: string) {
+async function createFirstUser(email: string, name: string, password: string) {
   const userId = `user-${randomUUID()}`;
   const createdAt = new Date().toISOString();
 
@@ -134,22 +134,22 @@ function createFirstUser(email: string, name: string, password: string) {
   });
 }
 
-export function registerCredentials(email: string, password: string, name: string): AuthIdentity | null {
-  getPersistence().leads.ensureDemoLeads();
+export async function registerCredentials(email: string, password: string, name: string): Promise<AuthIdentity | null> {
+  await getPersistence().leads.ensureDemoLeads();
 
   const normalizedEmail = email.trim().toLowerCase();
   const normalizedName = name.trim();
-  const user = createFirstUser(normalizedEmail, normalizedName, password);
+  const user = await createFirstUser(normalizedEmail, normalizedName, password);
 
-  return user ? identityForUser(user) : null;
+  return user ? await identityForUser(user) : null;
 }
 
-export function authenticateCredentials(email: string, password: string): AuthIdentity | null {
+export async function authenticateCredentials(email: string, password: string): Promise<AuthIdentity | null> {
   const normalizedEmail = email.trim().toLowerCase();
-  const user = getUserByEmail(normalizedEmail);
+  const user = await getUserByEmail(normalizedEmail);
 
   if (user) {
-    const identity = identityForUser(user);
+    const identity = await identityForUser(user);
 
     return identity && verifyPassword(password, user.passwordHash) ? identity : null;
   }
@@ -160,25 +160,25 @@ export function authenticateCredentials(email: string, password: string): AuthId
     return null;
   }
 
-  getPersistence().leads.ensureDemoLeads();
-  const configuredUser = createFirstUser(credentials.email, credentials.name, credentials.password);
+  await getPersistence().leads.ensureDemoLeads();
+  const configuredUser = await createFirstUser(credentials.email, credentials.name, credentials.password);
 
   if (configuredUser) {
     return identityForUser(configuredUser);
   }
 
-  const racedUser = getUserByEmail(normalizedEmail);
-  const identity = racedUser ? identityForUser(racedUser) : null;
+  const racedUser = await getUserByEmail(normalizedEmail);
+  const identity = racedUser ? await identityForUser(racedUser) : null;
 
   return identity && racedUser && verifyPassword(password, racedUser.passwordHash) ? identity : null;
 }
 
-export function createSession(identity: AuthIdentity) {
+export async function createSession(identity: AuthIdentity) {
   const token = randomBytes(32).toString("base64url");
   const sessionId = `session-${randomUUID()}`;
   const expiresAt = new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000).toISOString();
 
-  getPersistence().auth.createSession({
+  await getPersistence().auth.createSession({
     createdAt: new Date().toISOString(),
     expiresAt,
     id: sessionId,
@@ -197,16 +197,16 @@ export function createSession(identity: AuthIdentity) {
   };
 }
 
-export function getSessionFromToken(token: string): AuthSession | null {
+export async function getSessionFromToken(token: string): Promise<AuthSession | null> {
   if (!token) {
     return null;
   }
 
   const now = new Date().toISOString();
   const authRepository = getPersistence().auth;
-  authRepository.deleteExpiredSessions(now);
+  await authRepository.deleteExpiredSessions(now);
 
-  return authRepository.getSessionByTokenHash(hashSessionToken(token), now) ?? null;
+  return (await authRepository.getSessionByTokenHash(hashSessionToken(token), now)) ?? null;
 }
 
 function cookieValue(cookieHeader: string | null, name: string) {
@@ -243,7 +243,7 @@ async function tokenFromRequest(request?: Request) {
 
 export async function getSession(request?: Request) {
   const token = await tokenFromRequest(request);
-  return token ? getSessionFromToken(token) : null;
+  return token ? await getSessionFromToken(token) : null;
 }
 
 export async function getWorkspaceContext(request?: Request): Promise<WorkspaceContext | null> {
@@ -279,7 +279,7 @@ export async function revokeSession(request?: Request) {
     return;
   }
 
-  getPersistence().auth.revokeSession(hashSessionToken(token));
+  await getPersistence().auth.revokeSession(hashSessionToken(token));
 }
 
 function sessionCookie(token: string, maxAge: number) {

@@ -54,8 +54,8 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
   );
 }
 
-export function LeadDetail({ lead }: { lead: Lead }) {
-  const leadTasks = listTasks(lead.workspaceId).filter((task) => task.leadId === lead.id);
+export async function LeadDetail({ lead }: { lead: Lead }) {
+  const leadTasks = (await listTasks(lead.workspaceId)).filter((task) => task.leadId === lead.id);
 
   return (
     <div className="lead-detail-wrap">
