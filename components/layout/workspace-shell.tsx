@@ -7,15 +7,11 @@ import type { WorkspaceContext } from "@/lib/auth";
 export type IconName =
   | "activity"
   | "arrow"
-  | "building"
   | "check"
   | "chevron"
   | "grid"
   | "layers"
-  | "plus"
-  | "search"
-  | "settings"
-  | "users";
+  | "plus";
 
 export function Icon({ name, size = 17 }: { name: IconName; size?: number }) {
   const sharedProps = {
@@ -29,12 +25,6 @@ export function Icon({ name, size = 17 }: { name: IconName; size?: number }) {
   const paths: Record<IconName, ReactNode> = {
     activity: <path {...sharedProps} d="M3.5 12.5h3l1.7-5 3.2 8 1.7-4h3.4" />,
     arrow: <path {...sharedProps} d="M4 9h10m-4-4 4 4-4 4" />,
-    building: (
-      <>
-        <path {...sharedProps} d="M4 15.5h12M5.5 15.5V5.2L10 3.5l4.5 1.7v10.3" />
-        <path {...sharedProps} d="M8 7.5h.01M12 7.5h.01M8 10.5h.01M12 10.5h.01" />
-      </>
-    ),
     check: (
       <>
         <path {...sharedProps} d="M5 9.5 8 12l6-6" />
@@ -57,25 +47,6 @@ export function Icon({ name, size = 17 }: { name: IconName; size?: number }) {
       </>
     ),
     plus: <path {...sharedProps} d="M9 3v12M3 9h12" />,
-    search: (
-      <>
-        <circle {...sharedProps} cx="8" cy="8" r="4.8" />
-        <path {...sharedProps} d="m11.5 11.5 3.5 3.5" />
-      </>
-    ),
-    settings: (
-      <>
-        <circle {...sharedProps} cx="9" cy="9" r="2.4" />
-        <path {...sharedProps} d="m14 10.5 1.2 1.1-1.6 2.7-1.6-.6a6 6 0 0 1-1.6.9L10 16.2H7l-.4-1.6a6 6 0 0 1-1.6-.9l-1.6.6-1.6-2.7L3 10.5a6 6 0 0 1 0-3L1.8 6.4 3.4 3.7l1.6.6a6 6 0 0 1 1.6-.9L7 1.8h3l.4 1.6a6 6 0 0 1 1.6.9l1.6-.6 1.6 2.7L14 7.5a6 6 0 0 1 0 3Z" />
-      </>
-    ),
-    users: (
-      <>
-        <circle {...sharedProps} cx="9" cy="6" r="2.5" />
-        <path {...sharedProps} d="M4 15c.4-2.2 2.1-3.5 5-3.5s4.6 1.3 5 3.5" />
-        <path {...sharedProps} d="M4.2 8.7a2.1 2.1 0 0 0-2 2.2M13.8 8.7a2.1 2.1 0 0 1 2 2.2" />
-      </>
-    ),
   };
 
   return (
@@ -87,17 +58,15 @@ export function Icon({ name, size = 17 }: { name: IconName; size?: number }) {
 
 type WorkspaceRoute = "dashboard" | "leads" | "tasks";
 
-const navItems: Array<{
+const navItems: ReadonlyArray<{
   label: string;
   icon: IconName;
-  href?: string;
-  route?: WorkspaceRoute;
+  href: string;
+  route: WorkspaceRoute;
 }> = [
-  { label: "Dashboard", icon: "grid", href: "/", route: "dashboard" },
+  { label: "Home", icon: "grid", href: "/", route: "dashboard" },
   { label: "Leads", icon: "layers", href: "/leads", route: "leads" },
   { label: "Tasks", icon: "check", href: "/tasks", route: "tasks" },
-  { label: "Companies", icon: "building" },
-  { label: "Contacts", icon: "users" },
 ];
 
 export function WorkspaceShell({
@@ -117,7 +86,7 @@ export function WorkspaceShell({
   return (
     <div className="workspace">
       <aside className="sidebar">
-        <Link className="brand" href="/" aria-label="Outreach dashboard">
+        <Link className="brand" href="/" aria-label="Outreach home">
           <span className="brand-mark">o</span>
           <span>outreach</span>
           <span className="brand-dot">.</span>
@@ -140,45 +109,20 @@ export function WorkspaceShell({
 
               return (
                 <li key={item.label}>
-                  {item.href ? (
-                    <Link
-                      aria-current={isActive ? "page" : undefined}
-                      className={`nav-item${isActive ? " nav-item-active" : ""}`}
-                      href={item.href}
-                    >
-                      <Icon name={item.icon} />
-                      <span>{item.label}</span>
-                    </Link>
-                  ) : (
-                    <span aria-disabled="true" className="nav-item nav-item-disabled">
-                      <Icon name={item.icon} />
-                      <span>{item.label}</span>
-                      <span className="nav-item-status">soon</span>
-                    </span>
-                  )}
+                  <Link
+                    aria-current={isActive ? "page" : undefined}
+                    className={`nav-item${isActive ? " nav-item-active" : ""}`}
+                    href={item.href}
+                  >
+                    <Icon name={item.icon} />
+                    <span>{item.label}</span>
+                  </Link>
                 </li>
               );
             })}
           </ul>
         </nav>
 
-        <div className="sidebar-bottom">
-          <nav aria-label="Secondary navigation">
-            <ul className="nav-list">
-              <li>
-                <span aria-disabled="true" className="nav-item nav-item-disabled">
-                  <Icon name="settings" />
-                  <span>Settings</span>
-                  <span className="nav-item-status">soon</span>
-                </span>
-              </li>
-            </ul>
-          </nav>
-          <div className="privacy-note">
-            <strong>Thoughtful outreach</strong>
-            <span>Keep the reason, context, and next step close to every lead.</span>
-          </div>
-        </div>
       </aside>
 
       <main className="main-content">
@@ -189,11 +133,6 @@ export function WorkspaceShell({
             <strong>{breadcrumb}</strong>
           </div>
           <div className="topbar-actions">
-            <button aria-label="Search workspace coming soon" className="search-trigger" disabled type="button">
-              <Icon name="search" size={15} />
-              <span>Search workspace</span>
-              <kbd>⌘ K</kbd>
-            </button>
             <span aria-label={workspace.userName} className="user-avatar">{userInitial}</span>
             <LogoutButton />
           </div>

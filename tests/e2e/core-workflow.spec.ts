@@ -55,6 +55,16 @@ test("carries a new lead through the core outreach workflow", async ({ page }) =
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { name: "Good morning, Wayne." })).toBeVisible();
 
+  const primaryNavigation = page.getByRole("navigation", { name: "Primary navigation" });
+  await expect(primaryNavigation.getByRole("link")).toHaveText(["Home", "Leads", "Tasks"]);
+  await expect(page.getByText("Companies", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Contacts", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Settings", { exact: true })).toHaveCount(0);
+  await expect(page.locator(".summary-card")).toHaveCount(2);
+  await expect(page.getByRole("heading", { name: "Needs attention", exact: true })).toBeVisible();
+  await expect(page.getByText("Activity pulse", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Product principle", { exact: true })).toHaveCount(0);
+
   await page.goto("/login");
   await expect(page).toHaveURL(/\/$/);
   await page.goto("/leads");
