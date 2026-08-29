@@ -1,5 +1,5 @@
 import { getWorkspaceContext } from "@/lib/auth";
-import { createLead } from "@/lib/leads/demo-repository";
+import { createLead } from "@/lib/leads/repository";
 import { createLeadSchema } from "@/lib/validation/lead";
 
 export async function POST(request: Request) {

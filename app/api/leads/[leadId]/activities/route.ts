@@ -1,5 +1,5 @@
 import { getWorkspaceContext } from "@/lib/auth";
-import { addLeadActivity, getLeadById } from "@/lib/leads/demo-repository";
+import { addLeadActivity, getLeadById } from "@/lib/leads/repository";
 import { createActivitySchema } from "@/lib/validation/activity";
 
 export async function POST(

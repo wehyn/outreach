@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { LeadDetail } from "@/components/leads/lead-detail";
 import { WorkspaceShell } from "@/components/layout/workspace-shell";
 import { requireWorkspace } from "@/lib/auth";
-import { getLeadById } from "@/lib/leads/demo-repository";
+import { getLeadById } from "@/lib/leads/repository";
 
 export const dynamic = "force-dynamic";
 

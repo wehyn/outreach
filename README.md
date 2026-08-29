@@ -44,6 +44,10 @@ The first successful sign-in with the configured credentials provisions that acc
 
 To use another SQLite file, set `OUTREACH_DB_PATH` before starting the server. Tests use an isolated in-memory database automatically.
 
+## Persistence boundary
+
+Server-side application code uses the provider-neutral repositories in `lib/leads/repository.ts` and `lib/tasks/repository.ts`, while authentication keeps its storage operations behind the auth repository port. `lib/persistence/index.ts` currently selects the SQLite provider implemented by `lib/persistence/sqlite.ts`; a future Supabase PostgreSQL provider should implement the same ports without changing route handlers or validation.
+
 ## Verification
 
 ```bash

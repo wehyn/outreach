@@ -1,7 +1,7 @@
 import { getWorkspaceContext } from "@/lib/auth";
-import { createTask } from "@/lib/tasks/demo-repository";
+import { createTask } from "@/lib/tasks/repository";
 import { createTaskSchema } from "@/lib/validation/task";
-import { getLeadById } from "@/lib/leads/demo-repository";
+import { getLeadById } from "@/lib/leads/repository";
 
 export async function POST(
   request: Request,

@@ -1,5 +1,5 @@
-import { groupLeadsByStage } from "../leads/demo-repository";
-import type { Lead, LeadActivity, LeadActivityType } from "../leads/demo-repository";
+import { groupLeadsByStage } from "../leads/repository";
+import type { Lead, LeadActivity, LeadActivityType } from "../leads/repository";
 import type { Task } from "../tasks/task";
 
 export type DashboardActivityIcon = "activity" | "check" | "layers" | "plus";

@@ -1,5 +1,5 @@
 import { getWorkspaceContext } from "@/lib/auth";
-import { completeTask, getTaskById } from "@/lib/tasks/demo-repository";
+import { completeTask, getTaskById } from "@/lib/tasks/repository";
 import { updateTaskSchema } from "@/lib/validation/task";
 
 export async function PATCH(

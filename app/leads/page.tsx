@@ -5,7 +5,7 @@ import { LeadPipeline } from "@/components/leads/lead-pipeline";
 import { CreateLeadForm } from "@/components/leads/create-lead-form";
 import { WorkspaceShell } from "@/components/layout/workspace-shell";
 import { requireWorkspace } from "@/lib/auth";
-import { ACTIVE_PIPELINE_STAGES, groupLeadsByStage, listLeads } from "@/lib/leads/demo-repository";
+import { ACTIVE_PIPELINE_STAGES, groupLeadsByStage, listLeads } from "@/lib/leads/repository";
 
 export const metadata: Metadata = {
   title: "Leads — Outreach",

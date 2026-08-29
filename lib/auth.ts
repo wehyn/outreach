@@ -3,30 +3,14 @@ import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { getDatabase, withTransaction } from "./db";
-import { DEMO_WORKSPACE_ID, ensureDemoLeads } from "./leads/demo-repository";
+import { DEMO_WORKSPACE_ID } from "./leads/demo-repository";
+import { getPersistence } from "./persistence";
+import type { StoredUser } from "./persistence";
 
 export const SESSION_COOKIE_NAME = "outreach_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 const PASSWORD_KEY_LENGTH = 64;
 const PASSWORD_SALT_LENGTH = 16;
-
-type UserRow = {
-  email: string;
-  id: string;
-  name: string;
-  password_hash: string;
-};
-
-type SessionRow = {
-  email: string;
-  expires_at: string;
-  session_id: string;
-  user_id: string;
-  user_name: string;
-  workspace_id: string;
-  workspace_name: string;
-};
 
 export type AuthIdentity = {
   email: string;
@@ -69,12 +53,7 @@ export function isAuthConfigured() {
 }
 
 export function hasRegisteredUser() {
-  const database = getDatabase();
-  const row = database.prepare("SELECT 1 AS registered FROM users LIMIT 1").get() as
-    | { registered: number }
-    | undefined;
-
-  return row?.registered === 1;
+  return getPersistence().auth.hasRegisteredUser();
 }
 
 function hashPassword(password: string, salt: string) {
@@ -121,18 +100,8 @@ function hashSessionToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
 
-function identityForUser(user: UserRow): AuthIdentity | null {
-  const database = getDatabase();
-  const workspace = database
-    .prepare(
-      `SELECT w.id, w.name
-       FROM workspace_members wm
-       JOIN workspaces w ON w.id = wm.workspace_id
-       WHERE wm.user_id = ?
-       ORDER BY wm.created_at ASC, w.id ASC
-       LIMIT 1`,
-    )
-    .get(user.id) as { id: string; name: string } | undefined;
+function identityForUser(user: StoredUser): AuthIdentity | null {
+  const workspace = getPersistence().auth.getWorkspaceForUser(user.id);
 
   if (!workspace) {
     return null;
@@ -148,38 +117,25 @@ function identityForUser(user: UserRow): AuthIdentity | null {
 }
 
 function getUserByEmail(email: string) {
-  return getDatabase()
-    .prepare("SELECT id, email, name, password_hash FROM users WHERE email = ?")
-    .get(email) as UserRow | undefined;
+  return getPersistence().auth.getUserByEmail(email);
 }
 
 function createFirstUser(email: string, name: string, password: string) {
-  let userId: string | null = null;
+  const userId = `user-${randomUUID()}`;
+  const createdAt = new Date().toISOString();
 
-  withTransaction((database) => {
-    const existingUser = database.prepare("SELECT 1 AS registered FROM users LIMIT 1").get();
-
-    if (existingUser) {
-      return;
-    }
-
-    userId = `user-${randomUUID()}`;
-    database
-      .prepare("INSERT INTO users (id, email, name, password_hash, created_at) VALUES (?, ?, ?, ?, ?)")
-      .run(userId, email, name, createPasswordHash(password), new Date().toISOString());
-    database
-      .prepare(
-        `INSERT INTO workspace_members (workspace_id, user_id, role, created_at)
-         VALUES (?, ?, ?, ?)`,
-      )
-      .run(DEMO_WORKSPACE_ID, userId, "owner", new Date().toISOString());
+  return getPersistence().auth.createFirstUser({
+    createdAt,
+    email,
+    id: userId,
+    name,
+    passwordHash: createPasswordHash(password),
+    workspaceId: DEMO_WORKSPACE_ID,
   });
-
-  return userId ? getUserByEmail(email) : null;
 }
 
 export function registerCredentials(email: string, password: string, name: string): AuthIdentity | null {
-  ensureDemoLeads();
+  getPersistence().leads.ensureDemoLeads();
 
   const normalizedEmail = email.trim().toLowerCase();
   const normalizedName = name.trim();
@@ -195,7 +151,7 @@ export function authenticateCredentials(email: string, password: string): AuthId
   if (user) {
     const identity = identityForUser(user);
 
-    return identity && verifyPassword(password, user.password_hash) ? identity : null;
+    return identity && verifyPassword(password, user.passwordHash) ? identity : null;
   }
 
   const credentials = configuredCredentials();
@@ -204,7 +160,7 @@ export function authenticateCredentials(email: string, password: string): AuthId
     return null;
   }
 
-  ensureDemoLeads();
+  getPersistence().leads.ensureDemoLeads();
   const configuredUser = createFirstUser(credentials.email, credentials.name, credentials.password);
 
   if (configuredUser) {
@@ -214,7 +170,7 @@ export function authenticateCredentials(email: string, password: string): AuthId
   const racedUser = getUserByEmail(normalizedEmail);
   const identity = racedUser ? identityForUser(racedUser) : null;
 
-  return identity && racedUser && verifyPassword(password, racedUser.password_hash) ? identity : null;
+  return identity && racedUser && verifyPassword(password, racedUser.passwordHash) ? identity : null;
 }
 
 export function createSession(identity: AuthIdentity) {
@@ -222,20 +178,13 @@ export function createSession(identity: AuthIdentity) {
   const sessionId = `session-${randomUUID()}`;
   const expiresAt = new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000).toISOString();
 
-  withTransaction((database) => {
-    database
-      .prepare(
-        `INSERT INTO sessions (id, user_id, workspace_id, token_hash, expires_at, created_at)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-      )
-      .run(
-        sessionId,
-        identity.userId,
-        identity.workspaceId,
-        hashSessionToken(token),
-        expiresAt,
-        new Date().toISOString(),
-      );
+  getPersistence().auth.createSession({
+    createdAt: new Date().toISOString(),
+    expiresAt,
+    id: sessionId,
+    tokenHash: hashSessionToken(token),
+    userId: identity.userId,
+    workspaceId: identity.workspaceId,
   });
 
   return {
@@ -253,40 +202,11 @@ export function getSessionFromToken(token: string): AuthSession | null {
     return null;
   }
 
-  const database = getDatabase();
   const now = new Date().toISOString();
-  database.prepare("DELETE FROM sessions WHERE expires_at <= ?").run(now);
-  const row = database
-    .prepare(
-      `SELECT
-         s.id AS session_id,
-         s.expires_at,
-         u.id AS user_id,
-         u.email,
-         u.name AS user_name,
-         w.id AS workspace_id,
-         w.name AS workspace_name
-       FROM sessions s
-       JOIN users u ON u.id = s.user_id
-       JOIN workspace_members wm ON wm.user_id = s.user_id AND wm.workspace_id = s.workspace_id
-       JOIN workspaces w ON w.id = s.workspace_id
-       WHERE s.token_hash = ? AND s.expires_at > ?`,
-    )
-    .get(hashSessionToken(token), now) as SessionRow | undefined;
+  const authRepository = getPersistence().auth;
+  authRepository.deleteExpiredSessions(now);
 
-  if (!row) {
-    return null;
-  }
-
-  return {
-    email: row.email,
-    expiresAt: row.expires_at,
-    sessionId: row.session_id,
-    userId: row.user_id,
-    userName: row.user_name,
-    workspaceId: row.workspace_id,
-    workspaceName: row.workspace_name,
-  };
+  return authRepository.getSessionByTokenHash(hashSessionToken(token), now) ?? null;
 }
 
 function cookieValue(cookieHeader: string | null, name: string) {
@@ -359,7 +279,7 @@ export async function revokeSession(request?: Request) {
     return;
   }
 
-  getDatabase().prepare("DELETE FROM sessions WHERE token_hash = ?").run(hashSessionToken(token));
+  getPersistence().auth.revokeSession(hashSessionToken(token));
 }
 
 function sessionCookie(token: string, maxAge: number) {

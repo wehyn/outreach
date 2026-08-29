@@ -1,4 +1,4 @@
-import type { PipelineColumn } from "@/lib/leads/demo-repository";
+import type { PipelineColumn } from "@/lib/leads/repository";
 
 import { LeadCard } from "./lead-card";
 

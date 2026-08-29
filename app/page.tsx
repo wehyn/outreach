@@ -3,8 +3,8 @@ import Link from "next/link";
 import { Icon, WorkspaceShell } from "@/components/layout/workspace-shell";
 import { requireWorkspace } from "@/lib/auth";
 import { buildDashboardData } from "@/lib/dashboard/dashboard";
-import { listLeads } from "@/lib/leads/demo-repository";
-import { listTasks } from "@/lib/tasks/demo-repository";
+import { listLeads } from "@/lib/leads/repository";
+import { listTasks } from "@/lib/tasks/repository";
 
 export const dynamic = "force-dynamic";
 

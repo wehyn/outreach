@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import type { Lead } from "@/lib/leads/demo-repository";
+import type { Lead } from "@/lib/leads/repository";
 
 export function LeadCard({ lead }: { lead: Lead }) {
   return (

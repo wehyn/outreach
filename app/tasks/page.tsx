@@ -4,7 +4,7 @@ import Link from "next/link";
 import { WorkspaceShell } from "@/components/layout/workspace-shell";
 import { TaskList } from "@/components/tasks/task-list";
 import { requireWorkspace } from "@/lib/auth";
-import { listTasks } from "@/lib/tasks/demo-repository";
+import { listTasks } from "@/lib/tasks/repository";
 
 export const metadata: Metadata = {
   title: "Tasks — Outreach",

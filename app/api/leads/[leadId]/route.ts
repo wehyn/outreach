@@ -1,5 +1,5 @@
 import { getWorkspaceContext } from "@/lib/auth";
-import { getLeadById, updateLead } from "@/lib/leads/demo-repository";
+import { getLeadById, updateLead } from "@/lib/leads/repository";
 import { updateLeadSchema } from "@/lib/validation/lead";
 
 export async function PATCH(
