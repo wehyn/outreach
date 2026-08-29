@@ -11,6 +11,7 @@ export type StoredUser = {
 
 export type CreateUserRecord = StoredUser & {
   createdAt: string;
+  workspaceName: string;
   workspaceId: string;
 };
 
@@ -52,7 +53,6 @@ export interface AuthRepository {
 export interface LeadRepository {
   addLeadActivity(id: string, workspaceId: string, input: LeadActivityInput): Promise<Lead | null>;
   createLead(workspaceId: string, input: CreateLeadInput): Promise<Lead | null>;
-  ensureDemoLeads(): Promise<void>;
   getLeadById(id: string, workspaceId: string): Promise<Lead | null>;
   listLeads(workspaceId: string): Promise<Lead[]>;
   updateLead(id: string, workspaceId: string, input: LeadUpdate): Promise<Lead | null>;

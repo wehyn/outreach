@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { getDatabase, withTransaction } from "../db";
-import { DEMO_WORKSPACE_ID } from "../workspace";
+import { DEMO_WORKSPACE_ID, DEMO_WORKSPACE_NAME } from "../workspace";
 import { ACTIVE_PIPELINE_STAGES } from "./pipeline";
 import type { LeadStage } from "./pipeline";
 import type { CreateLeadInput } from "../validation/lead";
@@ -350,7 +350,7 @@ function seedDemoLeads() {
     "INSERT OR IGNORE INTO activities (id, workspace_id, lead_id, type, body, occurred_at, actor) VALUES (?, ?, ?, ?, ?, ?, ?)",
   );
 
-  insertWorkspace.run(DEMO_WORKSPACE_ID, "Wayne's workspace");
+  insertWorkspace.run(DEMO_WORKSPACE_ID, DEMO_WORKSPACE_NAME);
 
   for (const lead of DEMO_LEADS) {
     insertCompany.run(

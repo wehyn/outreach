@@ -13,9 +13,6 @@ export function createSqlitePersistence(): PersistenceProvider {
       async createLead(workspaceId, input) {
         return sqliteLeads.createLead(workspaceId, input);
       },
-      async ensureDemoLeads() {
-        sqliteLeads.ensureDemoLeads();
-      },
       async getLeadById(id, workspaceId) {
         return sqliteLeads.getLeadById(id, workspaceId);
       },

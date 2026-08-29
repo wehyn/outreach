@@ -40,6 +40,16 @@ describe("local session authentication", () => {
     });
   });
 
+  it("provisions the account workspace without loading lead fixtures", async () => {
+    await expect(registerCredentials("new-owner@example.com", AUTH_PASSWORD, "New Owner")).resolves.not.toBeNull();
+
+    const workspace = getDatabase().prepare("SELECT COUNT(*) AS count FROM workspaces").get() as { count: number };
+    const leads = getDatabase().prepare("SELECT COUNT(*) AS count FROM leads").get() as { count: number };
+
+    expect(workspace.count).toBe(1);
+    expect(leads.count).toBe(0);
+  });
+
   it("does not replace the existing first account during a second registration", async () => {
     expect(await registerCredentials(AUTH_EMAIL, AUTH_PASSWORD, "Wayne")).not.toBeNull();
 

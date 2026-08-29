@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getPersistence } from "./persistence";
-import { DEMO_WORKSPACE_ID } from "./workspace";
+import { DEMO_WORKSPACE_ID, DEMO_WORKSPACE_NAME } from "./workspace";
 import type { StoredUser } from "./persistence";
 
 export const SESSION_COOKIE_NAME = "outreach_session";
@@ -131,12 +131,11 @@ async function createFirstUser(email: string, name: string, password: string) {
     name,
     passwordHash: createPasswordHash(password),
     workspaceId: DEMO_WORKSPACE_ID,
+    workspaceName: DEMO_WORKSPACE_NAME,
   });
 }
 
 export async function registerCredentials(email: string, password: string, name: string): Promise<AuthIdentity | null> {
-  await getPersistence().leads.ensureDemoLeads();
-
   const normalizedEmail = email.trim().toLowerCase();
   const normalizedName = name.trim();
   const user = await createFirstUser(normalizedEmail, normalizedName, password);
@@ -160,7 +159,6 @@ export async function authenticateCredentials(email: string, password: string): 
     return null;
   }
 
-  await getPersistence().leads.ensureDemoLeads();
   const configuredUser = await createFirstUser(credentials.email, credentials.name, credentials.password);
 
   if (configuredUser) {

@@ -21,6 +21,9 @@ export function createSqliteAuthRepository(): AuthRepository {
         }
 
         database
+          .prepare("INSERT OR IGNORE INTO workspaces (id, name) VALUES (?, ?)")
+          .run(input.workspaceId, input.workspaceName);
+        database
           .prepare("INSERT INTO users (id, email, name, password_hash, created_at) VALUES (?, ?, ?, ?, ?)")
           .run(input.id, input.email, input.name, input.passwordHash, input.createdAt);
         database

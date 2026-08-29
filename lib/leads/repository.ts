@@ -6,10 +6,6 @@ import { ACTIVE_PIPELINE_STAGES } from "./pipeline";
 export { ACTIVE_PIPELINE_STAGES, PIPELINE_STAGES } from "./pipeline";
 export type { ActivePipelineStage, Lead, LeadActivity, LeadActivityInput, LeadActivityType, LeadCompany, LeadContact, LeadPriority, LeadUpdate, PipelineColumn } from "./types";
 
-export async function ensureDemoLeads() {
-  return getPersistence().leads.ensureDemoLeads();
-}
-
 export async function listLeads(workspaceId: string) {
   return getPersistence().leads.listLeads(workspaceId);
 }
