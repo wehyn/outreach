@@ -21,6 +21,15 @@ npm run dev
 
 Open http://localhost:3000.
 
+To access the development server from another machine, bind Next.js to all interfaces and configure the allowed hostnames. Use hostnames only, without protocols or paths; the configured list replaces the local defaults:
+
+```bash
+export OUTREACH_ALLOWED_DEV_ORIGINS="localhost,127.0.0.1,0.0.0.0,100.123.45.66"
+npm run dev -- --hostname 0.0.0.0
+```
+
+Add your LAN or Tailscale hostname/IP to `OUTREACH_ALLOWED_DEV_ORIGINS` as needed. Keep environment-specific addresses in local environment configuration rather than committing them to the repository.
+
 On a fresh database, open `/register` to create the first local account. This development slice supports one account per SQLite database. Keep the account credentials outside the repository.
 
 For scripted or automated bootstrapping, the server can provision the first account from these environment variables:
