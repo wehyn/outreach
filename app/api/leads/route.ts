@@ -1,5 +1,5 @@
 import { getWorkspaceContext } from "@/lib/auth";
-import { createLead } from "@/lib/leads/demo-repository";
+import { createLead } from "@/lib/leads/repository";
 import { createLeadSchema } from "@/lib/validation/lead";
 
 export async function POST(request: Request) {
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const lead = createLead(workspace.workspaceId, parsed.data);
+  const lead = await createLead(workspace.workspaceId, parsed.data);
 
   if (!lead) {
     return Response.json({ error: "Workspace could not be found." }, { status: 404 });

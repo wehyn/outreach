@@ -3,10 +3,10 @@ import Link from "next/link";
 import { ActivityForm } from "@/components/leads/activity-form";
 import { LeadActions } from "@/components/leads/lead-actions";
 import { Icon } from "@/components/layout/workspace-shell";
-import type { Lead, LeadActivityType } from "@/lib/leads/demo-repository";
+import type { Lead, LeadActivityType } from "@/lib/leads/repository";
 import { TaskForm } from "@/components/tasks/task-form";
 import { TaskList } from "@/components/tasks/task-list";
-import { listTasks } from "@/lib/tasks/demo-repository";
+import { listTasks } from "@/lib/tasks/repository";
 
 const activityLabels: Record<LeadActivityType, string> = {
   email: "Email logged",
@@ -54,8 +54,8 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
   );
 }
 
-export function LeadDetail({ lead }: { lead: Lead }) {
-  const leadTasks = listTasks(lead.workspaceId).filter((task) => task.leadId === lead.id);
+export async function LeadDetail({ lead }: { lead: Lead }) {
+  const leadTasks = (await listTasks(lead.workspaceId)).filter((task) => task.leadId === lead.id);
 
   return (
     <div className="lead-detail-wrap">

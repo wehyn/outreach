@@ -1,71 +1,34 @@
 import { randomUUID } from "node:crypto";
 
 import { getDatabase, withTransaction } from "../db";
+import { DEMO_WORKSPACE_ID, DEMO_WORKSPACE_NAME } from "../workspace";
 import { ACTIVE_PIPELINE_STAGES } from "./pipeline";
-import type { ActivePipelineStage, LeadStage } from "./pipeline";
-import type { ManualActivityType } from "./activity";
+import type { LeadStage } from "./pipeline";
 import type { CreateLeadInput } from "../validation/lead";
+import type {
+  Lead,
+  LeadActivityInput,
+  LeadActivityType,
+  LeadPriority,
+  LeadUpdate,
+  PipelineColumn,
+} from "./types";
 
 export { ACTIVE_PIPELINE_STAGES, PIPELINE_STAGES } from "./pipeline";
 export type { ActivePipelineStage, LeadStage } from "./pipeline";
+export type {
+  Lead,
+  LeadActivity,
+  LeadActivityInput,
+  LeadActivityType,
+  LeadCompany,
+  LeadContact,
+  LeadPriority,
+  LeadUpdate,
+  PipelineColumn,
+} from "./types";
 
-export const DEMO_WORKSPACE_ID = "workspace-wayne-demo";
-export type LeadPriority = "high" | "medium" | "low";
-export type LeadActivityType = "email" | "note" | "call" | "meeting" | "stage_change";
-
-export type LeadActivity = {
-  id: string;
-  type: LeadActivityType;
-  body: string;
-  occurredAt: string;
-  actor: string;
-};
-
-export type LeadCompany = {
-  id: string;
-  name: string;
-  domain: string;
-  location: string;
-};
-
-export type LeadContact = {
-  id: string;
-  name: string;
-  title: string;
-  email: string;
-  initials: string;
-};
-
-export type Lead = {
-  id: string;
-  workspaceId: string;
-  name: string;
-  initials: string;
-  stage: LeadStage;
-  status: "active" | "won" | "lost" | "nurture";
-  priority: LeadPriority;
-  company: LeadCompany;
-  contact: LeadContact;
-  serviceInterest: string;
-  observedPainPoint: string;
-  recommendedOffer: string;
-  personalizationHook: string;
-  researchNotes: string;
-  estimatedValue: string;
-  source: string;
-  nextAction: string;
-  nextActionDate: string;
-  lastContactedAt: string | null;
-  fitScore: number;
-  engagementScore: number;
-  activity: LeadActivity[];
-};
-
-export type PipelineColumn = {
-  title: ActivePipelineStage;
-  count: number;
-  leads: Lead[];
-};
+export { DEMO_WORKSPACE_ID } from "../workspace";
 
 const DEMO_LEADS: Lead[] = [
   {
@@ -328,12 +291,6 @@ const DEMO_LEADS: Lead[] = [
   },
 ];
 
-export type LeadUpdate = {
-  stage?: LeadStage;
-  nextAction?: string;
-  nextActionDate?: string;
-};
-
 type LeadRow = {
   company_domain: string;
   company_id: string;
@@ -393,7 +350,7 @@ function seedDemoLeads() {
     "INSERT OR IGNORE INTO activities (id, workspace_id, lead_id, type, body, occurred_at, actor) VALUES (?, ?, ?, ?, ?, ?, ?)",
   );
 
-  insertWorkspace.run(DEMO_WORKSPACE_ID, "Wayne's workspace");
+  insertWorkspace.run(DEMO_WORKSPACE_ID, DEMO_WORKSPACE_NAME);
 
   for (const lead of DEMO_LEADS) {
     insertCompany.run(
@@ -701,12 +658,6 @@ export function updateLead(id: string, workspaceId: string, input: LeadUpdate): 
 
   return getLeadById(id, workspaceId);
 }
-
-export type LeadActivityInput = {
-  type: ManualActivityType;
-  body: string;
-  occurredAt?: string;
-};
 
 export function addLeadActivity(id: string, workspaceId: string, input: LeadActivityInput): Lead | null {
   const currentLead = getLeadById(id, workspaceId);

@@ -5,7 +5,7 @@ import { LeadPipeline } from "@/components/leads/lead-pipeline";
 import { CreateLeadForm } from "@/components/leads/create-lead-form";
 import { WorkspaceShell } from "@/components/layout/workspace-shell";
 import { requireWorkspace } from "@/lib/auth";
-import { ACTIVE_PIPELINE_STAGES, groupLeadsByStage, listLeads } from "@/lib/leads/demo-repository";
+import { ACTIVE_PIPELINE_STAGES, groupLeadsByStage, listLeads } from "@/lib/leads/repository";
 
 export const metadata: Metadata = {
   title: "Leads — Outreach",
@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 export default async function LeadsPage() {
   const workspace = await requireWorkspace();
-  const leads = listLeads(workspace.workspaceId);
+  const leads = await listLeads(workspace.workspaceId);
   const columns = groupLeadsByStage(leads);
   const highFitLeads = leads.filter((lead) => lead.fitScore >= 85).length;
 

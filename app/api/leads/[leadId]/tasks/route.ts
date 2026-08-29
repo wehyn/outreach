@@ -1,7 +1,7 @@
 import { getWorkspaceContext } from "@/lib/auth";
-import { createTask } from "@/lib/tasks/demo-repository";
+import { createTask } from "@/lib/tasks/repository";
 import { createTaskSchema } from "@/lib/validation/task";
-import { getLeadById } from "@/lib/leads/demo-repository";
+import { getLeadById } from "@/lib/leads/repository";
 
 export async function POST(
   request: Request,
@@ -14,7 +14,7 @@ export async function POST(
   }
 
   const { leadId } = await params;
-  const lead = getLeadById(leadId, workspace.workspaceId);
+  const lead = await getLeadById(leadId, workspace.workspaceId);
 
   if (!lead) {
     return Response.json({ error: "Lead not found." }, { status: 404 });
@@ -40,7 +40,7 @@ export async function POST(
     );
   }
 
-  const task = createTask(leadId, workspace.workspaceId, parsed.data);
+  const task = await createTask(leadId, workspace.workspaceId, parsed.data);
 
   if (!task) {
     return Response.json({ error: "Lead not found." }, { status: 404 });

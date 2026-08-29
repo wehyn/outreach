@@ -22,10 +22,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const identity = authenticateCredentials(parsed.data.email, parsed.data.password);
+  const identity = await authenticateCredentials(parsed.data.email, parsed.data.password);
 
   if (!identity) {
-    if (!hasRegisteredUser()) {
+    if (!(await hasRegisteredUser())) {
       return Response.json(
         {
           code: "ACCOUNT_NOT_REGISTERED",
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid email or password." }, { status: 401 });
   }
 
-  const session = createSession(identity);
+  const session = await createSession(identity);
   const response = Response.json({
     user: {
       email: identity.email,
