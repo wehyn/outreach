@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { getDatabase, withTransaction } from "../db";
+import { DEMO_WORKSPACE_ID } from "../workspace";
 import { ACTIVE_PIPELINE_STAGES } from "./pipeline";
 import type { LeadStage } from "./pipeline";
 import type { CreateLeadInput } from "../validation/lead";
@@ -27,7 +28,7 @@ export type {
   PipelineColumn,
 } from "./types";
 
-export const DEMO_WORKSPACE_ID = "workspace-wayne-demo";
+export { DEMO_WORKSPACE_ID } from "../workspace";
 
 const DEMO_LEADS: Lead[] = [
   {

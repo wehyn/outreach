@@ -3,8 +3,8 @@ import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { DEMO_WORKSPACE_ID } from "./leads/demo-repository";
 import { getPersistence } from "./persistence";
+import { DEMO_WORKSPACE_ID } from "./workspace";
 import type { StoredUser } from "./persistence";
 
 export const SESSION_COOKIE_NAME = "outreach_session";
